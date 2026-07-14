@@ -258,31 +258,30 @@ function renderOrders(data) {
   if (activeOrders.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">\uD83C\uDF89</div><h3>Semua pesanan selesai!</h3><p>Tidak ada antrian aktif saat ini.</p></div>`;
     badge.style.display = "none";
-    return;
+  } else {
+    badge.style.display = "inline-block";
+    badge.innerText = activeOrders.length;
+    let hasNew = false;
+    
+    activeOrders.forEach((order) => {
+      if (!knownOrderIds.has(order.id)) {
+        hasNew = true;
+        knownOrderIds.add(order.id);
+      }
+      const mejaLabel = String(order.meja).toLowerCase().includes("meja") ? order.meja : "Meja " + order.meja;
+      const card = document.createElement("div");
+      card.className = "order-card" + (order.status === "Baru" ? " new" : "");
+      card.innerHTML = `<div class="order-header"><span class="order-id">${order.id}</span><span class="order-time">${order.waktu}</span></div>
+      <div class="order-meta"><div class="order-name">\uD83D\uDC64 ${order.nama}</div><div class="order-table">\uD83D\uDCCD ${mejaLabel}</div></div>
+      <div class="order-detail">${order.detail}</div>
+      <div class="order-footer"><span class="order-total">${order.total}</span>
+        <button class="btn btn-success" onclick="updateOrderStatus(${order.rowIdx}, 'Selesai')" style="padding:8px 18px;font-size:0.85rem;">\u2714 Selesai</button>
+      </div>`;
+      grid.appendChild(card);
+    });
+    
+    if (hasNew) startAlarm();
   }
-  
-  badge.style.display = "inline-block";
-  badge.innerText = activeOrders.length;
-  let hasNew = false;
-  
-  activeOrders.forEach((order) => {
-    if (!knownOrderIds.has(order.id)) {
-      hasNew = true;
-      knownOrderIds.add(order.id);
-    }
-    const mejaLabel = String(order.meja).toLowerCase().includes("meja") ? order.meja : "Meja " + order.meja;
-    const card = document.createElement("div");
-    card.className = "order-card" + (order.status === "Baru" ? " new" : "");
-    card.innerHTML = `<div class="order-header"><span class="order-id">${order.id}</span><span class="order-time">${order.waktu}</span></div>
-    <div class="order-meta"><div class="order-name">\uD83D\uDC64 ${order.nama}</div><div class="order-table">\uD83D\uDCCD ${mejaLabel}</div></div>
-    <div class="order-detail">${order.detail}</div>
-    <div class="order-footer"><span class="order-total">${order.total}</span>
-      <button class="btn btn-success" onclick="updateOrderStatus(${order.rowIdx}, 'Selesai')" style="padding:8px 18px;font-size:0.85rem;">\u2714 Selesai</button>
-    </div>`;
-    grid.appendChild(card);
-  });
-  
-  if (hasNew) startAlarm();
   
   const tbody = document.getElementById("historyTableBody");
   if(tbody) {
