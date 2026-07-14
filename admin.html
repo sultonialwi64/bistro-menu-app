@@ -385,16 +385,31 @@
 
       /* ── RESPONSIVE TWEAKS ── */
       @media (max-width: 600px) {
-        .admin-header { padding: 16px; flex-direction: column; gap: 8px; text-align: center; }
-        .toolbar { flex-direction: column; gap: 12px; }
-        .toolbar .btn { width: 100%; }
+        .admin-header {
+          padding: 16px;
+          flex-direction: column;
+          gap: 8px;
+          text-align: center;
+        }
+        .toolbar {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .toolbar .btn {
+          width: 100%;
+        }
 
         /* Ubah tabel menjadi sistem card */
         .table-container {
           background: transparent;
           box-shadow: none;
         }
-        table, thead, tbody, th, td, tr {
+        table,
+        thead,
+        tbody,
+        th,
+        td,
+        tr {
           display: block;
         }
         thead {
@@ -455,15 +470,28 @@
           padding-top: 8px !important;
           border-top: 1px solid var(--border) !important;
         }
-        .btn-edit, .btn-danger {
+        .btn-edit,
+        .btn-danger {
           padding: 8px 16px;
           font-size: 0.85rem;
         }
 
-        .modal-box { width: 95%; height: 95vh; max-height: 95vh; }
-        .modal-body { padding: 16px; }
-        .modal-footer { padding: 16px; flex-direction: column; }
-        .modal-footer button { width: 100%; margin-bottom: 8px; }
+        .modal-box {
+          width: 95%;
+          height: 95vh;
+          max-height: 95vh;
+        }
+        .modal-body {
+          padding: 16px;
+        }
+        .modal-footer {
+          padding: 16px;
+          flex-direction: column;
+        }
+        .modal-footer button {
+          width: 100%;
+          margin-bottom: 8px;
+        }
       }
     </style>
   </head>
@@ -628,8 +656,8 @@
            Pastikan ini SAMA dengan yang ada di index.html!
            ================================================================ */
       const APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbw-Vh_b07HNA2akojlo7FQwZ6cr6IRFW4tMzjNopk3nHeyBDP8W7jhqdyDccvlYITbE/exec";
-      let sessionPin = ""; 
+        "https://script.google.com/macros/s/AKfycbz54dYntgX1o1l8DbQ1pjmmlMuqFZiiZik8nnWsT1Bfx9r7cTbRqq0cDw2cyJCon_s/exec";
+      let sessionPin = "";
       /* ================================================================ */
 
       let cachedData = [];
@@ -654,10 +682,10 @@
           const res = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "login", pin: val })
+            body: JSON.stringify({ action: "login", pin: val }),
           });
           const json = await res.json();
-          
+
           if (json.status === "ok") {
             sessionPin = val;
             document.getElementById("pinOverlay").style.display = "none";
