@@ -1,4 +1,4 @@
-﻿// js/admin.js
+// js/admin.js
 import { adminLogin, adminGetOrders, adminUpdateOrderStatus, adminSaveMenu, adminDeleteMenu, fetchMenuData } from "./api.js";
 import { showToast } from "./utils.js";
 
@@ -158,19 +158,23 @@ window.deleteMenu = async function(id, name) {
 window.switchTab = function(tab) {
   document.getElementById("tabMenu").classList.toggle("active", tab === "menu");
   document.getElementById("tabOrders").classList.toggle("active", tab === "orders");
+  document.getElementById("tabHistory").classList.toggle("active", tab === "history");
+  
   document.getElementById("tabBtnMenu").classList.toggle("active", tab === "menu");
   document.getElementById("tabBtnOrders").classList.toggle("active", tab === "orders");
+  document.getElementById("tabBtnHistory").classList.toggle("active", tab === "history");
   
   const titles = {
     orders: ["Pesanan Masuk", "Memantau pesanan secara real-time"],
-    menu: ["Kelola Menu", "Tambah, edit, atau hapus item menu"]
+    menu: ["Kelola Menu", "Tambah, edit, atau hapus item menu"],
+    history: ["Riwayat Pesanan", "Daftar pesanan yang telah selesai atau dibatalkan"]
   };
   
   document.getElementById("topbarTitle").innerText = titles[tab][0];
   document.getElementById("topbarSub").innerText = titles[tab][1];
   window.closeSidebar();
   
-  if (tab === "orders") {
+  if (tab === "orders" || tab === "history") {
     window.fetchOrders();
     if (!fetchInterval) fetchInterval = setInterval(window.fetchOrders, 10000);
   } else {
@@ -233,7 +237,7 @@ function renderOrders(data) {
   const badge = document.getElementById("orderBadge");
   
   const activeOrders = data.filter((o) => o.status !== "Selesai" && o.status !== "Batal");
-  const doneOrders = data.filter((o) => o.status === "Selesai");
+  const doneOrders = data.filter((o) => o.status === "Selesai" || o.status === "Batal");
   
   document.getElementById("statActive").innerText = activeOrders.length;
   document.getElementById("statTotal").innerText = data.length;
@@ -269,6 +273,33 @@ function renderOrders(data) {
   });
   
   if (hasNew) startAlarm();
+  
+  const tbody = document.getElementById("historyTableBody");
+  if(tbody) {
+    tbody.innerHTML = "";
+    if (doneOrders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="loading-state">Belum ada riwayat pesanan.</td></tr>`;
+    } else {
+      doneOrders.forEach((order) => {
+        const tr = document.createElement("tr");
+        let statusBadge = order.status === "Selesai" 
+            ? `<span style="padding:4px 8px;border-radius:4px;background:var(--green);color:#fff;font-size:0.8rem;font-weight:600;">Selesai</span>`
+            : `<span style="padding:4px 8px;border-radius:4px;background:#e74c3c;color:#fff;font-size:0.8rem;font-weight:600;">Batal</span>`;
+        tr.innerHTML = `
+          <td><strong>${order.id}</strong></td>
+          <td style="color:var(--muted);font-size:0.9rem;">${order.waktu}</td>
+          <td>
+            <div style="font-weight:600;">${order.nama}</div>
+            <div style="font-size:0.85rem;color:var(--muted);">Meja: ${order.meja}</div>
+          </td>
+          <td style="font-size:0.9rem;white-space:pre-wrap;max-width:250px;">${order.detail}</td>
+          <td style="font-weight:700;color:var(--accent);">${order.total}</td>
+          <td>${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  }
 }
 
 window.updateOrderStatus = async function(rowIdx, newStatus) {

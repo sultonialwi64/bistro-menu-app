@@ -29,6 +29,9 @@
           <button class="nav-item" id="tabBtnMenu" onclick="switchTab('menu')">
             <span class="nav-icon">&#x1F37D;&#xFE0F;</span> Kelola Menu
           </button>
+          <button class="nav-item" id="tabBtnHistory" onclick="switchTab('history')">
+            <span class="nav-icon">&#x1F4DC;</span> Riwayat Pesanan
+          </button>
         </nav>
         <div class="sidebar-footer"><a href="/" target="_blank"><span>&#x2197;</span> Lihat Website</a></div>
       </aside>
@@ -75,6 +78,18 @@
             <table>
               <thead><tr><th>Foto</th><th>Nama &amp; Harga</th><th>Kategori</th><th>Deskripsi</th><th style="text-align:right">Aksi</th></tr></thead>
               <tbody id="tableBody"><tr><td colspan="5" class="loading-state">Menunggu login...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="page" id="tabHistory">
+          <div class="toolbar">
+            <div class="section-title" style="margin-bottom:0;">Riwayat Pesanan (Selesai/Batal)</div>
+            <button class="btn btn-secondary" onclick="fetchOrders()">&#x21BA; Refresh Data</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID Pesanan</th><th>Waktu</th><th>Nama / Meja</th><th>Rincian</th><th>Total</th><th>Status</th></tr></thead>
+              <tbody id="historyTableBody"><tr><td colspan="6" class="loading-state">Mengambil riwayat...</td></tr></tbody>
             </table>
           </div>
         </div>
