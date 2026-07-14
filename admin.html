@@ -303,13 +303,19 @@
       }
 
       .modal-body {
-        padding: 24px;
+        padding: 20px;
         overflow-y: auto;
+        flex: 1;
       }
       .form-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 16px;
+      }
+      @media (min-width: 600px) {
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
       }
       .form-group {
         margin-bottom: 16px;
@@ -375,6 +381,89 @@
       }
       #toast.show {
         bottom: 30px;
+      }
+
+      /* ── RESPONSIVE TWEAKS ── */
+      @media (max-width: 600px) {
+        .admin-header { padding: 16px; flex-direction: column; gap: 8px; text-align: center; }
+        .toolbar { flex-direction: column; gap: 12px; }
+        .toolbar .btn { width: 100%; }
+
+        /* Ubah tabel menjadi sistem card */
+        .table-container {
+          background: transparent;
+          box-shadow: none;
+        }
+        table, thead, tbody, th, td, tr {
+          display: block;
+        }
+        thead {
+          display: none;
+        }
+        tr {
+          background: var(--surface);
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+          margin-bottom: 16px;
+          padding: 16px;
+          display: grid;
+          grid-template-columns: 70px 1fr;
+          grid-template-rows: auto auto auto auto;
+          gap: 8px 12px;
+        }
+        td {
+          padding: 0 !important;
+          border: none !important;
+        }
+        .td-img {
+          grid-column: 1;
+          grid-row: 1 / span 2;
+          display: flex;
+          align-items: flex-start;
+          justify-content: flex-start;
+        }
+        .td-img img {
+          width: 70px;
+          height: 70px;
+          border-radius: 8px;
+        }
+        td:nth-child(2) {
+          grid-column: 2;
+          grid-row: 1;
+        }
+        td:nth-child(3) {
+          grid-column: 2;
+          grid-row: 2;
+          display: flex;
+          align-items: center;
+        }
+        .td-desc {
+          grid-column: 1 / span 2;
+          grid-row: 3;
+          white-space: normal;
+          max-width: 100%;
+          font-size: 0.85rem;
+          color: var(--text-light);
+          border-top: 1px dashed var(--border) !important;
+          padding-top: 8px !important;
+          margin-top: 4px;
+        }
+        td:last-child {
+          grid-column: 1 / span 2;
+          grid-row: 4;
+          text-align: right !important;
+          padding-top: 8px !important;
+          border-top: 1px solid var(--border) !important;
+        }
+        .btn-edit, .btn-danger {
+          padding: 8px 16px;
+          font-size: 0.85rem;
+        }
+
+        .modal-box { width: 95%; height: 95vh; max-height: 95vh; }
+        .modal-body { padding: 16px; }
+        .modal-footer { padding: 16px; flex-direction: column; }
+        .modal-footer button { width: 100%; margin-bottom: 8px; }
       }
     </style>
   </head>
