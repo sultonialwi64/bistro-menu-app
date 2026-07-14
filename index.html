@@ -1024,6 +1024,48 @@
         border: 1px dashed var(--amber);
         line-height: 1.4;
       }
+      .order-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 14px;
+        background: rgba(200, 136, 14, 0.05);
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(200, 136, 14, 0.2);
+      }
+      .order-input {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border-card);
+        background: var(--bg);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.9rem;
+      }
+      .order-input:focus {
+        outline: none;
+        border-color: var(--amber);
+      }
+      .btn-checkout {
+        background: var(--amber);
+        color: var(--ink);
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.2s;
+        margin-top: 4px;
+      }
+      .btn-checkout:hover {
+        background: var(--amber-lt);
+      }
+      .btn-checkout:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
       .btn-clear-cart {
         width: 100%;
         background: transparent;
@@ -1251,9 +1293,13 @@
           <span>Total Est.</span>
           <span id="cartDrawerTotal">Rp 0</span>
         </div>
-        <div class="drawer-info-text">
-          Tunjukkan catatan ini ke Pelayan / Kasir saat memesan makanan Anda.
+        
+        <div class="order-form">
+          <input type="text" id="custName" placeholder="Nama Anda (Wajib)" class="order-input" autocomplete="off" />
+          <input type="text" id="custTable" placeholder="Nomor Meja (Opsional)" class="order-input" autocomplete="off" />
+          <button class="btn-checkout" id="btnCheckout" onclick="submitOrder()">Kirim Pesanan</button>
         </div>
+        
         <button class="btn-clear-cart" onclick="clearCart()">Kosongkan Catatan</button>
       </div>
     </div>
@@ -2041,6 +2087,75 @@
           btn.style.color = "";
           closeModal(); // Auto close detail popup
         }, 800);
+      }
+
+      // URL Parameter & Table Auto-detection
+      window.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        window.MEJA_NO = urlParams.get('meja') || "";
+        const tableInput = document.getElementById("custTable");
+        if (window.MEJA_NO && tableInput) {
+          tableInput.value = "Meja " + window.MEJA_NO;
+          tableInput.setAttribute("readonly", "true");
+          tableInput.style.opacity = "0.6";
+          tableInput.style.pointerEvents = "none";
+        }
+      });
+
+      async function submitOrder() {
+        if (window.CART_DATA.length === 0) return alert("Catatan pesanan masih kosong.");
+        
+        const custName = document.getElementById("custName").value.trim();
+        let custTable = document.getElementById("custTable").value.trim();
+        
+        if (!custName) return alert("Mohon isi nama Anda terlebih dahulu.");
+        if (window.MEJA_NO) custTable = window.MEJA_NO; // Paksa gunakan nomor meja dari URL jika ada
+        
+        const btn = document.getElementById("btnCheckout");
+        btn.innerText = "Mengirim...";
+        btn.disabled = true;
+
+        let total = 0;
+        const details = window.CART_DATA.map(item => {
+          total += parsePrice(item.price) * item.qty;
+          return `${item.qty}x ${item.name}`;
+        }).join("\n");
+
+        const payload = {
+          action: "order",
+          data: {
+            nama: custName,
+            meja: custTable || "-",
+            total: formatPrice(total),
+            detail: details
+          }
+        };
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload)
+          });
+          const json = await res.json();
+          if (json.status === "ok") {
+            alert(`Pesanan berhasil terkirim! (ID: ${json.orderId})\nSilakan tunggu, pesanan Anda akan segera diproses.`);
+            window.CART_DATA = [];
+            localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
+            document.getElementById("custName").value = "";
+            if (!window.MEJA_NO) document.getElementById("custTable").value = "";
+            updateCartUI();
+            renderCart();
+            toggleCartDrawer(false);
+          } else {
+            alert("Gagal mengirim pesanan: " + json.message);
+          }
+        } catch (err) {
+          alert("Terjadi kesalahan koneksi saat mengirim pesanan.");
+        } finally {
+          btn.innerText = "Kirim Pesanan";
+          btn.disabled = false;
+        }
       }
 
       // Initial badge render on load
