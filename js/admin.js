@@ -1,0 +1,293 @@
+﻿// js/admin.js
+import { adminLogin, adminGetOrders, adminUpdateOrderStatus, adminSaveMenu, adminDeleteMenu, fetchMenuData } from "./api.js";
+import { showToast } from "./utils.js";
+
+let sessionPin = "";
+let cachedData = [];
+let isSaving = false;
+let fetchInterval = null;
+let knownOrderIds = new Set();
+let alarmInterval = null;
+let audioCtx = null;
+
+// Expose functions to window for HTML inline event handlers
+window.openSidebar = function() {
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("sidebarOverlay").classList.add("show");
+};
+
+window.closeSidebar = function() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+};
+
+window.checkPin = async function() {
+  const pinInput = document.getElementById("pinInput");
+  const val = pinInput.value.trim();
+  if (!val) return;
+  const btn = document.querySelector("#pinOverlay button");
+  btn.innerText = "Memverifikasi...";
+  btn.disabled = true;
+  try {
+    await adminLogin(val);
+    sessionPin = val;
+    document.getElementById("pinOverlay").style.display = "none";
+    window.fetchData();
+    window.switchTab("orders");
+  } catch (err) {
+    const e = document.getElementById("pinError");
+    e.innerText = err.message || "PIN salah.";
+    e.style.display = "block";
+    pinInput.value = "";
+    pinInput.focus();
+  } finally {
+    btn.innerText = "Masuk \u2192";
+    btn.disabled = false;
+  }
+};
+
+window.fetchData = async function() {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = `<tr><td colspan="5" class="loading-state"><div class="loading-spinner"></div><br>Mengambil data...</td></tr>`;
+  try {
+    cachedData = await fetchMenuData();
+    renderTable(cachedData);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="loading-state" style="color:#ff6b6b;">\u26A0\uFE0F Gagal: ${err.message}</td></tr>`;
+  }
+};
+
+function renderTable(data) {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="loading-state">Menu kosong.</td></tr>`;
+    return;
+  }
+  data.forEach((item) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="td-img"><img src="${item.image || item.img || 'https://via.placeholder.com/50'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"></td>
+    <td><div class="td-name">${item.name}</div><div class="td-price">${item.price}</div></td>
+    <td><span class="td-cat">${item.category}</span></td>
+    <td class="td-desc" title="${item.desc}">${item.desc}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="btn-edit-sm" onclick="openModal('edit', ${item.id})">\u270F Edit</button>
+      <button class="btn-danger-sm" onclick="deleteMenu(${item.id}, '${item.name.replace(/'/g, '')}')">\u00D7 Hapus</button>
+    </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+window.openModal = function(mode, id = null) {
+  const form = document.getElementById("menuForm");
+  form.reset();
+  document.getElementById("formId").value = "";
+  document.getElementById("modalTitle").innerText = mode === "add" ? "Tambah Menu Baru" : "Edit Menu";
+  if (mode === "edit" && id) {
+    const item = cachedData.find((d) => d.id === id);
+    if (item) {
+      document.getElementById("formId").value = item.id;
+      document.getElementById("formName").value = item.name;
+      document.getElementById("formPrice").value = item.price;
+      document.getElementById("formCategory").value = (item.category || "main").toLowerCase();
+      document.getElementById("formStars").value = item.stars || "5";
+      document.getElementById("formImage").value = item.image || item.img;
+      document.getElementById("formDesc").value = item.desc;
+      document.getElementById("formTags").value = item.tags;
+      document.getElementById("formRibbon").value = item.ribbon;
+    }
+  }
+  document.getElementById("formModal").classList.add("active");
+};
+
+window.closeModal = function() {
+  document.getElementById("formModal").classList.remove("active");
+};
+
+window.saveMenu = async function() {
+  if (isSaving) return;
+  const form = document.getElementById("menuForm");
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  const rowId = document.getElementById("formId").value;
+  const payload = {
+    action: rowId ? "edit" : "add",
+    id: rowId || null,
+    pin: sessionPin,
+    data: {
+      name: document.getElementById("formName").value,
+      price: document.getElementById("formPrice").value,
+      category: document.getElementById("formCategory").value,
+      stars: document.getElementById("formStars").value,
+      image: document.getElementById("formImage").value,
+      desc: document.getElementById("formDesc").value,
+      tags: document.getElementById("formTags").value,
+      ribbon: document.getElementById("formRibbon").value
+    }
+  };
+  
+  const btnSave = document.getElementById("btnSave");
+  btnSave.innerText = "Menyimpan...";
+  isSaving = true;
+  try {
+    await adminSaveMenu(payload);
+    showToast(rowId ? "\u2713 Perubahan disimpan!" : "\u2713 Menu baru ditambahkan!");
+    window.closeModal();
+    window.fetchData();
+  } catch (err) {
+    alert("Kesalahan jaringan: " + err.message);
+  } finally {
+    btnSave.innerText = "Simpan Menu";
+    isSaving = false;
+  }
+};
+
+window.deleteMenu = async function(id, name) {
+  if (!confirm(`Yakin ingin menghapus "${name}"?`)) return;
+  try {
+    await adminDeleteMenu(id, sessionPin);
+    showToast("\u2713 Menu dihapus!");
+    window.fetchData();
+  } catch (err) {
+    alert("Kesalahan jaringan: " + err.message);
+  }
+};
+
+window.switchTab = function(tab) {
+  document.getElementById("tabMenu").classList.toggle("active", tab === "menu");
+  document.getElementById("tabOrders").classList.toggle("active", tab === "orders");
+  document.getElementById("tabBtnMenu").classList.toggle("active", tab === "menu");
+  document.getElementById("tabBtnOrders").classList.toggle("active", tab === "orders");
+  
+  const titles = {
+    orders: ["Pesanan Masuk", "Memantau pesanan secara real-time"],
+    menu: ["Kelola Menu", "Tambah, edit, atau hapus item menu"]
+  };
+  
+  document.getElementById("topbarTitle").innerText = titles[tab][0];
+  document.getElementById("topbarSub").innerText = titles[tab][1];
+  window.closeSidebar();
+  
+  if (tab === "orders") {
+    window.fetchOrders();
+    if (!fetchInterval) fetchInterval = setInterval(window.fetchOrders, 10000);
+  } else {
+    if (fetchInterval) {
+      clearInterval(fetchInterval);
+      fetchInterval = null;
+    }
+  }
+};
+
+function startAlarm() {
+  const st = document.getElementById("soundToggle");
+  if (st && !st.checked) return;
+  if (alarmInterval) return;
+  
+  document.getElementById("stopAlarmBtn").style.display = "flex";
+  alarmInterval = setInterval(() => {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.type = "square";
+      o.frequency.setValueAtTime(400, audioCtx.currentTime);
+      o.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+      g.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      o.start();
+      o.stop(audioCtx.currentTime + 0.4);
+    } catch (e) {
+      console.warn("Audio failed", e);
+    }
+    if ("vibrate" in navigator) navigator.vibrate([300, 100, 300]);
+  }, 1000);
+}
+
+window.stopAlarm = function() {
+  if (alarmInterval) {
+    clearInterval(alarmInterval);
+    alarmInterval = null;
+  }
+  if ("vibrate" in navigator) navigator.vibrate(0);
+  document.getElementById("stopAlarmBtn").style.display = "none";
+};
+
+window.fetchOrders = async function() {
+  if (!sessionPin) return;
+  try {
+    const orders = await adminGetOrders(sessionPin);
+    renderOrders(orders);
+  } catch (err) {
+    console.error("Gagal mengambil pesanan", err);
+  }
+};
+
+function renderOrders(data) {
+  const grid = document.getElementById("ordersGrid");
+  const badge = document.getElementById("orderBadge");
+  
+  const activeOrders = data.filter((o) => o.status !== "Selesai" && o.status !== "Batal");
+  const doneOrders = data.filter((o) => o.status === "Selesai");
+  
+  document.getElementById("statActive").innerText = activeOrders.length;
+  document.getElementById("statTotal").innerText = data.length;
+  document.getElementById("statDone").innerText = doneOrders.length;
+  document.getElementById("statLast").innerText = data.length > 0 ? data[0].id : "\u2014";
+  
+  grid.innerHTML = "";
+  if (activeOrders.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">\uD83C\uDF89</div><h3>Semua pesanan selesai!</h3><p>Tidak ada antrian aktif saat ini.</p></div>`;
+    badge.style.display = "none";
+    return;
+  }
+  
+  badge.style.display = "inline-block";
+  badge.innerText = activeOrders.length;
+  let hasNew = false;
+  
+  activeOrders.forEach((order) => {
+    if (!knownOrderIds.has(order.id)) {
+      hasNew = true;
+      knownOrderIds.add(order.id);
+    }
+    const mejaLabel = String(order.meja).toLowerCase().includes("meja") ? order.meja : "Meja " + order.meja;
+    const card = document.createElement("div");
+    card.className = "order-card" + (order.status === "Baru" ? " new" : "");
+    card.innerHTML = `<div class="order-header"><span class="order-id">${order.id}</span><span class="order-time">${order.waktu}</span></div>
+    <div class="order-meta"><div class="order-name">\uD83D\uDC64 ${order.nama}</div><div class="order-table">\uD83D\uDCCD ${mejaLabel}</div></div>
+    <div class="order-detail">${order.detail}</div>
+    <div class="order-footer"><span class="order-total">${order.total}</span>
+      <button class="btn btn-success" onclick="updateOrderStatus(${order.rowIdx}, 'Selesai')" style="padding:8px 18px;font-size:0.85rem;">\u2714 Selesai</button>
+    </div>`;
+    grid.appendChild(card);
+  });
+  
+  if (hasNew) startAlarm();
+}
+
+window.updateOrderStatus = async function(rowIdx, newStatus) {
+  if (!confirm(`Tandai pesanan ini sebagai ${newStatus}?`)) return;
+  try {
+    await adminUpdateOrderStatus(sessionPin, rowIdx, newStatus);
+    showToast("\u2713 Pesanan ditandai " + newStatus);
+    window.fetchOrders();
+  } catch (err) {
+    alert("Gagal update status");
+  }
+};
+
+// Listen to Pin Input Enter
+document.addEventListener("DOMContentLoaded", () => {
+    const pinInput = document.getElementById("pinInput");
+    if(pinInput) {
+        pinInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") window.checkPin();
+        });
+    }
+});
