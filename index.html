@@ -725,48 +725,148 @@
         transform: translateY(-2px);
       }
 
-      /* ── FLOATING NOTE BUTTON ── */
-      #floatingCartBtn {
+      /* ── SHOPEEFOOD STYLE BOTTOM BAR ── */
+      #shopeeCartBar {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: var(--crimson);
+        bottom: 16px;
+        left: 50%;
+        transform: translate(-50%, 120px);
+        width: 90%;
+        max-width: 500px;
+        background: var(--ink);
         color: var(--cream);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        z-index: 999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(200, 136, 14, 0.2);
+        cursor: pointer;
+      }
+      #shopeeCartBar.show {
+        transform: translate(-50%, 0);
+      }
+      .scb-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .scb-icon-wrapper {
+        position: relative;
+        background: var(--crimson);
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 30px rgba(192, 57, 43, 0.4);
-        cursor: pointer;
-        z-index: 999;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s;
-        transform: scale(0);
       }
-      #floatingCartBtn.show {
-        transform: scale(1);
-      }
-      #floatingCartBtn:hover {
-        transform: scale(1.1);
-        background: var(--amber);
-        box-shadow: 0 8px 30px rgba(200, 136, 14, 0.4);
-      }
-      #cartBadge {
+      .scb-badge {
         position: absolute;
-        top: -4px;
-        right: -4px;
+        top: -6px;
+        right: -6px;
         background: var(--amber);
         color: var(--ink);
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid var(--crimson);
+        border: 2px solid var(--ink);
+      }
+      .scb-info {
+        display: flex;
+        flex-direction: column;
+      }
+      .scb-price {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--cream);
+      }
+      .scb-count {
+        font-size: 0.75rem;
+        color: rgba(245, 230, 208, 0.6);
+      }
+      .scb-btn {
+        background: var(--amber);
+        color: var(--ink);
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s;
+        font-family: inherit;
+      }
+      .scb-btn:hover {
+        background: var(--amber-lt);
+      }
+      
+      /* ── CARD QUICK ADD CONTROLS ── */
+      .card-cart-ctrl {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(24, 16, 10, 0.03);
+        border-radius: 20px;
+        padding: 2px;
+        border: 1px solid var(--border-card);
+        transition: all 0.2s;
+      }
+      .card-cart-ctrl.active {
+        background: var(--cream);
+        border-color: var(--amber);
+      }
+      .quick-add-btn {
+        background: var(--crimson);
+        color: var(--cream);
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition: background 0.2s, transform 0.2s;
+      }
+      .quick-add-btn:hover {
+        background: var(--amber);
+        color: var(--ink);
+        transform: scale(1.1);
+      }
+      .quick-ctrl-btn {
+        background: transparent;
+        border: none;
+        width: 24px;
+        height: 24px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink);
+      }
+      .quick-qty-val {
+        font-size: 0.85rem;
+        font-weight: 700;
+        min-width: 14px;
+        text-align: center;
+        color: var(--ink);
       }
       
       /* ── NOTE DRAWER ── */
@@ -1111,13 +1211,27 @@
     <!-- MODAL -->
     <div id="menuModal" class="modal-overlay"></div>
 
-    <!-- FLOATING CART BUTTON -->
-    <div id="floatingCartBtn" onclick="toggleCartDrawer(true)">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-      </svg>
-      <div id="cartBadge" style="display: none;">0</div>
+    <!-- SHOPEEFOOD STYLE BOTTOM BAR -->
+    <div id="shopeeCartBar" onclick="toggleCartDrawer(true)">
+      <div class="scb-left">
+        <div class="scb-icon-wrapper">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+          </svg>
+          <div id="cartBadge" class="scb-badge" style="display: none;">0</div>
+        </div>
+        <div class="scb-info">
+          <span class="scb-price" id="scbTotalPrice">Rp 0</span>
+          <span class="scb-count" id="scbTotalCount">0 item dipilih</span>
+        </div>
+      </div>
+      <button class="scb-btn" onclick="event.stopPropagation(); toggleCartDrawer(true)">
+        Lihat Catatan
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
     </div>
 
     <!-- CART OVERLAY -->
@@ -1419,14 +1533,13 @@
             group.style.display = grid.children.length === 0 ? "none" : "";
           }
         });
+        updateCardControls();
       }
 
       /* ── Buat HTML satu card ───────────────────────────────────────── */
       function buildCard(item, idx) {
         const cat = (item.category || "main").toLowerCase().trim();
         const catLabel = CAT_LABELS[cat] || "Menu";
-        const starsN = Math.min(5, Math.max(1, parseInt(item.stars) || 5));
-        const starsStr = "★".repeat(starsN) + "☆".repeat(5 - starsN);
         const ribbon = item.ribbon
           ? `<span class="card-ribbon">${item.ribbon}</span>`
           : "";
@@ -1442,9 +1555,11 @@
         </div>
         <div class="card-body">
           <div class="card-name">${item.name}</div>
-          <div class="card-row">
+          <div class="card-row" style="justify-content: space-between; align-items: center;">
             <div class="card-price">${item.price}</div>
-            <div class="card-stars">${starsStr}</div>
+            <div class="card-cart-ctrl" data-idx="${idx}" onclick="event.stopPropagation();">
+              <!-- JS will dynamically populate add/minus controls here -->
+            </div>
           </div>
         </div>
       </div>`;
@@ -1756,20 +1871,32 @@
         }
       }
 
-      function updateCartBadge() {
+      function updateCartUI() {
         const badge = document.getElementById("cartBadge");
-        const btn = document.getElementById("floatingCartBtn");
+        const bar = document.getElementById("shopeeCartBar");
+        const priceEl = document.getElementById("scbTotalPrice");
+        const countEl = document.getElementById("scbTotalCount");
+
         const totalItems = window.CART_DATA.reduce((acc, item) => acc + item.qty, 0);
 
         if (totalItems > 0) {
+          let totalPrice = 0;
+          window.CART_DATA.forEach(item => {
+            totalPrice += parsePrice(item.price) * item.qty;
+          });
+
           badge.innerText = totalItems;
           badge.style.display = "flex";
-          btn.classList.add("show");
+          priceEl.innerText = formatPrice(totalPrice);
+          countEl.innerText = `${totalItems} item dipilih`;
+          bar.classList.add("show");
         } else {
           badge.style.display = "none";
-          btn.classList.remove("show");
+          bar.classList.remove("show");
           toggleCartDrawer(false); // Close if empty
         }
+        
+        updateCardControls();
       }
 
       function addToCart(name, price, img) {
@@ -1780,11 +1907,11 @@
           window.CART_DATA.push({ name, price, img, qty: 1 });
         }
         localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
-        updateCartBadge();
+        updateCartUI();
         
-        // Micro-animation on floating button
-        const btn = document.getElementById("floatingCartBtn");
-        gsap.fromTo(btn, { scale: 1 }, { scale: 1.2, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" });
+        // ShopeeFood sticky bar popup bounce animation
+        const bar = document.getElementById("shopeeCartBar");
+        gsap.fromTo(bar, { scale: 1 }, { scale: 1.03, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" });
       }
 
       function changeQty(name, amount) {
@@ -1795,16 +1922,53 @@
             window.CART_DATA.splice(idx, 1);
           }
           localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
-          updateCartBadge();
+          updateCartUI();
           renderCart();
         }
+      }
+
+      function quickPlus(idx) {
+        const item = window.MENU_DATA[idx];
+        if (!item) return;
+        const img = item.image || item.img || FALLBACK_IMG;
+        addToCart(item.name, item.price, img);
+      }
+
+      function quickMinus(idx) {
+        const item = window.MENU_DATA[idx];
+        if (!item) return;
+        changeQty(item.name, -1);
+      }
+
+      function updateCardControls() {
+        document.querySelectorAll(".card-cart-ctrl").forEach(ctrl => {
+          const idx = parseInt(ctrl.dataset.idx, 10);
+          const item = window.MENU_DATA[idx];
+          if (!item) return;
+
+          const cartItem = window.CART_DATA.find(ci => ci.name === item.name);
+          if (cartItem && cartItem.qty > 0) {
+            ctrl.innerHTML = `
+              <button class="quick-ctrl-btn minus" onclick="quickMinus(${idx})">−</button>
+              <span class="quick-qty-val">${cartItem.qty}</span>
+              <button class="quick-ctrl-btn plus" onclick="quickPlus(${idx})">+</button>
+            `;
+            ctrl.classList.add("active");
+          } else {
+            ctrl.innerHTML = `
+              <button class="quick-add-btn" onclick="quickPlus(${idx})">+</button>
+            `;
+            ctrl.classList.remove("active");
+          }
+        });
       }
 
       function clearCart() {
         if (confirm("Kosongkan semua catatan pesanan Anda?")) {
           window.CART_DATA = [];
           localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
-          updateCartBadge();
+          updateCartUI();
+          renderCart();
         }
       }
 
@@ -1875,7 +2039,7 @@
       }
 
       // Initial badge render on load
-      updateCartBadge();
+      updateCartUI();
     </script>
   </body>
 </html>
