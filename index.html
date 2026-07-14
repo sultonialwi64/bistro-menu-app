@@ -1973,7 +1973,9 @@
       }
 
       function parsePrice(priceStr) {
-        return parseInt(priceStr.replace(/[^0-9]/g, "")) || 0;
+        if (typeof priceStr === "number") return priceStr;
+        if (!priceStr) return 0;
+        return parseInt(String(priceStr).replace(/[^0-9]/g, "")) || 0;
       }
 
       function formatPrice(num) {
