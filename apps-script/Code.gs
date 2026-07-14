@@ -1,9 +1,10 @@
 // ============================================================
-//  BISTRO KEKINIAN — Menu API v2 (CRUD)
+//  BISTRO KEKINIAN — Menu API v3 (Secure CRUD)
 //  Google Apps Script
 // ============================================================
 
 const SHEET_TAB = "Menu"; // Ganti jika nama tab sheet berbeda
+const ADMIN_PIN = "123456"; // PIN rahasia kamu, aman di server Google, tidak bisa di-inspect browser!
 
 function doOptions(e) {
   // Merespons CORS preflight request (OPTIONS)
@@ -30,12 +31,10 @@ function doGet(e) {
     const headers = raw[0].map((h) => String(h).trim().toLowerCase().replace(/\s+/g, "_"));
 
     const items = [];
-    // Looping dari baris 2 (index array 1)
     for (let i = 1; i < raw.length; i++) {
       const row = raw[i];
-      // Jika kolom pertama (name) tidak kosong
       if (row[0] && String(row[0]).trim() !== "") {
-        const obj = { id: i + 1 }; // id merepresentasikan nomor baris di spreadsheet (baris 1 itu header, jadi baris data mulai dari 2)
+        const obj = { id: i + 1 }; // id adalah nomor baris di spreadsheet
         headers.forEach((h, colIdx) => {
           const val = (row[colIdx] !== undefined && row[colIdx] !== null) ? String(row[colIdx]).trim() : "";
           obj[h] = val;
@@ -52,7 +51,6 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    // Apps Script doPost untuk JSON payload
     let req;
     if (e.postData && e.postData.contents) {
       req = JSON.parse(e.postData.contents);
@@ -61,14 +59,24 @@ function doPost(e) {
     }
 
     const action = req.action;
-    const data = req.data;
+    const clientPin = req.pin;
+
+    // 1. Verifikasi PIN terlebih dahulu untuk SEMUA aksi POST
+    if (!clientPin || clientPin !== ADMIN_PIN) {
+      return respond({ status: "error", message: "Akses ditolak: PIN tidak valid atau salah!" });
+    }
+
+    // Jika aksinya hanya cek login PIN
+    if (action === "login") {
+      return respond({ status: "ok", message: "PIN valid" });
+    }
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_TAB) || ss.getActiveSheet();
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const data = req.data;
 
     if (action === "add") {
-      // Susun row baru berdasarkan urutan header
       const newRow = headers.map(h => {
         const key = String(h).trim().toLowerCase().replace(/\s+/g, "_");
         return data[key] !== undefined ? data[key] : "";
@@ -80,7 +88,6 @@ function doPost(e) {
       const rowId = parseInt(req.id, 10);
       if (!rowId || rowId < 2) return respond({ status: "error", message: "Invalid ID (Row Index)." });
 
-      // Update sel-sel di baris yang bersangkutan
       headers.forEach((h, colIdx) => {
         const key = String(h).trim().toLowerCase().replace(/\s+/g, "_");
         if (data[key] !== undefined) {
@@ -104,10 +111,12 @@ function doPost(e) {
   }
 }
 
-// Helper: return JSON response with CORS headers
 function respond(obj) {
-  // Dalam Web App, jika set MIME type JSON, redirect Apps Script mungkin membatasi header khusus.
-  // Tapi pendekatan ini sudah cukup untuk GET dan POST JSON jika di-fetch dari klien.
-  let output = ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-  return output;
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    });
 }

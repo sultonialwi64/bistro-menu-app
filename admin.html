@@ -629,7 +629,7 @@
            ================================================================ */
       const APPS_SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycbw-Vh_b07HNA2akojlo7FQwZ6cr6IRFW4tMzjNopk3nHeyBDP8W7jhqdyDccvlYITbE/exec";
-      const ADMIN_PIN = "123456"; // PIN Sederhana untuk login
+      let sessionPin = ""; 
       /* ================================================================ */
 
       let cachedData = [];
@@ -641,15 +641,39 @@
         if (e.key === "Enter") checkPin();
       });
 
-      function checkPin() {
-        const val = pinInput.value;
-        if (val === ADMIN_PIN) {
-          document.getElementById("pinOverlay").style.display = "none";
-          fetchData(); // Load data setelah login
-        } else {
-          document.getElementById("pinError").style.display = "block";
+      async function checkPin() {
+        const val = pinInput.value.trim();
+        if (!val) return;
+
+        const btn = document.querySelector("#pinOverlay button");
+        const originalText = btn.innerText;
+        btn.innerText = "Memverifikasi...";
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "login", pin: val })
+          });
+          const json = await res.json();
+          
+          if (json.status === "ok") {
+            sessionPin = val;
+            document.getElementById("pinOverlay").style.display = "none";
+            fetchData(); // Load data setelah login
+          } else {
+            throw new Error(json.message);
+          }
+        } catch (err) {
+          const errEl = document.getElementById("pinError");
+          errEl.innerText = err.message || "PIN salah. Coba lagi.";
+          errEl.style.display = "block";
           pinInput.value = "";
           pinInput.focus();
+        } finally {
+          btn.innerText = originalText;
+          btn.disabled = false;
         }
       }
 
@@ -755,6 +779,7 @@
         const payload = {
           action: rowId ? "edit" : "add",
           id: rowId || null,
+          pin: sessionPin,
           data: {
             name: document.getElementById("formName").value,
             price: document.getElementById("formPrice").value,
@@ -809,7 +834,7 @@
           const res = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "delete", id: id }),
+            body: JSON.stringify({ action: "delete", id: id, pin: sessionPin }),
           });
           const json = await res.json();
 
