@@ -1544,6 +1544,7 @@
           ? `<span class="card-ribbon">${item.ribbon}</span>`
           : "";
         const img = item.image || item.img || FALLBACK_IMG;
+        const displayPrice = formatPrice(parsePrice(item.price));
 
         return `
       <div class="menu-card" data-category="${cat}" data-idx="${idx}" onclick="openModal(this)">
@@ -1556,7 +1557,7 @@
         <div class="card-body">
           <div class="card-name">${item.name}</div>
           <div class="card-row" style="justify-content: space-between; align-items: center;">
-            <div class="card-price">${item.price}</div>
+            <div class="card-price">${displayPrice}</div>
             <div class="card-cart-ctrl" data-idx="${idx}" onclick="event.stopPropagation();">
               <!-- JS will dynamically populate add/minus controls here -->
             </div>
@@ -1673,7 +1674,7 @@
         const data = {
           img: item.image || item.img || FALLBACK_IMG,
           name: item.name || "",
-          price: item.price || "",
+          price: formatPrice(parsePrice(item.price)) || "",
           category: CAT_LABELS[cat] || item.category,
           stars: Math.min(5, Math.max(1, parseInt(item.stars) || 5)),
           desc: item.desc || item.description || "",
@@ -1909,9 +1910,11 @@
         localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
         updateCartUI();
         
-        // ShopeeFood sticky bar popup bounce animation
-        const bar = document.getElementById("shopeeCartBar");
-        gsap.fromTo(bar, { scale: 1 }, { scale: 1.03, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" });
+        // ShopeeFood sticky bar icon wrapper bounce animation
+        const iconWrapper = document.querySelector(".scb-icon-wrapper");
+        if (iconWrapper) {
+          gsap.fromTo(iconWrapper, { scale: 1 }, { scale: 1.25, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" });
+        }
       }
 
       function changeQty(name, amount) {
