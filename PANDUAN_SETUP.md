@@ -155,9 +155,24 @@ Setelah setup selesai, klien cukup:
 - Deployment Apps Script menggunakan **"Who has access: Anyone"**
 - Coba buka URL Apps Script langsung di browser — harus muncul JSON
 
-### Ingin update Apps Script
-→ Jika kode Apps Script diubah, harus **buat Deployment baru**:
-Deploy → New Deployment → URL baru akan berbeda → update di `index.html`
+### Ingin update Apps Script / Menambah Fitur Admin
+→ Jika kode Apps Script diubah (misal update untuk fitur Admin), kamu harus **buat Deployment baru**:
+1. Klik **Deploy** ➔ **New Deployment** (JANGAN Manage Deployments).
+2. Tipe: Web App.
+3. Klik Deploy, lalu copy URL yang **baru**.
+4. Paste URL baru tersebut ke `index.html` dan `admin.html`.
+
+---
+
+## 🔒 Menggunakan Admin Dashboard (admin.html)
+
+Klien tidak perlu buka Google Sheets lagi! Cukup berikan link admin dashboard:
+1. Buka URL: `https://bistro-menu-app.pages.dev/admin.html`
+2. Masukkan PIN Admin: **`123456`**
+3. Di sana klien bisa langsung klik **Tambah Menu**, **Edit**, atau **Hapus** dengan mudah.
+4. Semua perubahan akan otomatis disinkronkan ke Google Sheets dan Web.
+
+*(Catatan: Jangan lupa untuk memasukkan `APPS_SCRIPT_URL` ke dalam file `admin.html` baris ~247 sebelum di-push ke GitHub).*
 
 ### Menambah kategori baru (misal: "Drinks")
 → Edit kode di `index.html`:

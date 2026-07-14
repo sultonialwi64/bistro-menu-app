@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bistro Kekinian — Admin Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #c0392b;
+        --primary-hover: #a93226;
+        --bg: #f8f9fa;
+        --surface: #ffffff;
+        --text: #2c3e50;
+        --text-light: #7f8c8d;
+        --border: #e0e6ed;
+        --success: #27ae60;
+        --danger: #e74c3c;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      /* ── PIN OVERLAY ── */
+      #pinOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .pin-box {
+        background: var(--surface);
+        padding: 32px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        width: 90%;
+        max-width: 360px;
+      }
+      .pin-box h2 {
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+      .pin-box p {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 24px;
+      }
+      .pin-box input {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.2rem;
+        text-align: center;
+        letter-spacing: 4px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 16px;
+        outline: none;
+      }
+      .pin-box input:focus {
+        border-color: var(--primary);
+      }
+      .pin-box button {
+        width: 100%;
+      }
+      #pinError {
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-top: -8px;
+        margin-bottom: 16px;
+        display: none;
+      }
+
+      /* ── HEADER ── */
+      .admin-header {
+        background: var(--surface);
+        padding: 20px 32px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .admin-header h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .btn-view {
+        color: var(--text-light);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .btn-view:hover {
+        color: var(--primary);
+      }
+
+      /* ── MAIN CONTENT ── */
+      .container {
+        max-width: 1200px;
+        margin: 32px auto;
+        padding: 0 20px;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .btn {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn:hover {
+        background: var(--primary-hover);
+      }
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn-secondary:hover {
+        background: var(--bg);
+      }
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+      .btn-edit {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 8px;
+      }
+      .btn-edit:hover {
+        background: #2980b9;
+      }
+
+      /* ── TABLE ── */
+      .table-container {
+        background: var(--surface);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      th {
+        background: #f8fafc;
+        padding: 16px 20px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-light);
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+      }
+      td {
+        padding: 16px 20px;
+        font-size: 0.95rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .td-img img {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #eee;
+      }
+      .td-name {
+        font-weight: 600;
+        color: var(--text);
+      }
+      .td-cat {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #fdf2e9;
+        color: #e67e22;
+        text-transform: capitalize;
+      }
+      .td-desc {
+        max-width: 280px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text-light);
+        font-size: 0.85rem;
+      }
+
+      /* ── LOADING & ERROR ── */
+      .loading-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-light);
+      }
+      .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(192, 57, 43, 0.1);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 16px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── MODAL FORM ── */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal-box {
+        background: var(--surface);
+        width: 90%;
+        max-width: 600px;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh;
+      }
+      .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .modal-header h2 {
+        font-size: 1.2rem;
+      }
+      .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-light);
+        cursor: pointer;
+      }
+
+      .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .form-group {
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+      }
+      .form-group.full {
+        grid-column: 1 / -1;
+      }
+      .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: 6px;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: var(--primary);
+      }
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .modal-footer {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+      .modal-footer button {
+        margin: 0;
+      }
+
+      /* Toast Notification */
+      #toast {
+        position: fixed;
+        bottom: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: bottom 0.3s;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      #toast.show {
+        bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 1. PIN OVERLAY -->
+    <div id="pinOverlay">
+      <div class="pin-box">
+        <h2>Admin Login</h2>
+        <p>Masukkan PIN untuk mengelola menu.</p>
+        <input
+          type="password"
+          id="pinInput"
+          placeholder="••••"
+          maxlength="6"
+          autofocus
+          autocomplete="off"
+        />
+        <div id="pinError">PIN salah. Coba lagi.</div>
+        <button class="btn" onclick="checkPin()">Masuk</button>
+      </div>
+    </div>
+
+    <!-- 2. HEADER -->
+    <header class="admin-header">
+      <h1>Dashboard Menu Bistro</h1>
+      <a href="/" class="btn-view" target="_blank">Lihat Website ↗</a>
+    </header>
+
+    <!-- 3. MAIN CONTENT -->
+    <main class="container">
+      <div class="toolbar">
+        <button class="btn btn-secondary" onclick="fetchData()">
+          🔄 Refresh Data
+        </button>
+        <button class="btn" onclick="openModal('add')">➕ Tambah Menu</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nama & Harga</th>
+              <th>Kategori</th>
+              <th>Deskripsi</th>
+              <th style="text-align: right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="5" class="loading-state">Menunggu login...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- 4. MODAL FORM (Tambah/Edit) -->
+    <div class="modal-overlay" id="formModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2 id="modalTitle">Tambah Menu Baru</h2>
+          <button class="btn-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="menuForm">
+            <input type="hidden" id="formId" />
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nama Menu</label>
+                <input
+                  type="text"
+                  id="formName"
+                  required
+                  placeholder="Contoh: Burger Wagyu"
+                />
+              </div>
+              <div class="form-group">
+                <label>Harga (dengan Rp)</label>
+                <input
+                  type="text"
+                  id="formPrice"
+                  required
+                  placeholder="Contoh: Rp 89.000"
+                />
+              </div>
+              <div class="form-group">
+                <label>Kategori</label>
+                <select id="formCategory" required>
+                  <option value="main">Main Course</option>
+                  <option value="appetizer">Appetizer</option>
+                  <option value="dessert">Dessert</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Rating (1-5)</label>
+                <select id="formStars" required>
+                  <option value="5">5 Bintang (Sempurna)</option>
+                  <option value="4">4 Bintang (Sangat Baik)</option>
+                  <option value="3">3 Bintang (Baik)</option>
+                  <option value="2">2 Bintang (Cukup)</option>
+                  <option value="1">1 Bintang (Kurang)</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label>URL Gambar (Unsplash / Google Drive)</label>
+                <input
+                  type="url"
+                  id="formImage"
+                  required
+                  placeholder="https://images.unsplash.com/..."
+                />
+              </div>
+              <div class="form-group full">
+                <label>Deskripsi Pendek</label>
+                <textarea
+                  id="formDesc"
+                  required
+                  placeholder="Deskripsi makanan maksimal 3 kalimat..."
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label>Tags (pisahkan dengan koma)</label>
+                <input
+                  type="text"
+                  id="formTags"
+                  placeholder="Wagyu, Premium, Signature"
+                />
+              </div>
+              <div class="form-group">
+                <label>Label Ribbon (Pita Merah)</label>
+                <input
+                  type="text"
+                  id="formRibbon"
+                  placeholder="Kosongkan, atau isi: Best Seller"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn btn-secondary"
+            onclick="closeModal()"
+            id="btnCancel"
+          >
+            Batal
+          </button>
+          <button class="btn" onclick="saveMenu()" id="btnSave">
+            Simpan Menu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">Data disimpan!</div>
+
+    <script>
+      /* ================================================================
+           🔧  KONFIGURASI URL APPS SCRIPT
+           Pastikan ini SAMA dengan yang ada di index.html!
+           ================================================================ */
+      const APPS_SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbw-Vh_b07HNA2akojlo7FQwZ6cr6IRFW4tMzjNopk3nHeyBDP8W7jhqdyDccvlYITbE/exec";
+      const ADMIN_PIN = "123456"; // PIN Sederhana untuk login
+      /* ================================================================ */
+
+      let cachedData = [];
+      let isSaving = false;
+
+      // ── 1. LOGIN LOGIC ──
+      const pinInput = document.getElementById("pinInput");
+      pinInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") checkPin();
+      });
+
+      function checkPin() {
+        const val = pinInput.value;
+        if (val === ADMIN_PIN) {
+          document.getElementById("pinOverlay").style.display = "none";
+          fetchData(); // Load data setelah login
+        } else {
+          document.getElementById("pinError").style.display = "block";
+          pinInput.value = "";
+          pinInput.focus();
+        }
+      }
+
+      // ── 2. FETCH & RENDER DATA ──
+      async function fetchData() {
+        const tbody = document.getElementById("tableBody");
+        if (APPS_SCRIPT_URL === "PASTE_URL_DISINI") {
+          tbody.innerHTML = `<tr><td colspan="5" class="loading-state" style="color:var(--danger)">⚠️ Error: URL Apps Script belum dikonfigurasi di file admin.html</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = `<tr><td colspan="5" class="loading-state"><div class="loading-spinner"></div><br>Mengambil data dari server...</td></tr>`;
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL);
+          const json = await res.json();
+
+          if (json.status === "ok") {
+            cachedData = json.data;
+            renderTable(cachedData);
+          } else {
+            throw new Error(json.message);
+          }
+        } catch (err) {
+          tbody.innerHTML = `<tr><td colspan="5" class="loading-state" style="color:var(--danger)">⚠️ Gagal mengambil data: ${err.message}</td></tr>`;
+        }
+      }
+
+      function renderTable(data) {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="loading-state">Menu kosong. Silakan tambah menu baru.</td></tr>`;
+          return;
+        }
+
+        data.forEach((item) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                    <td class="td-img"><img src="${item.image || item.img || "https://via.placeholder.com/50"}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"></td>
+                    <td>
+                        <div class="td-name">${item.name}</div>
+                        <div style="font-size:0.85rem; color:var(--text-light); margin-top:4px;">${item.price}</div>
+                    </td>
+                    <td><span class="td-cat">${item.category}</span></td>
+                    <td class="td-desc" title="${item.desc}">${item.desc}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <button class="btn-edit" onclick="openModal('edit', ${item.id})">Edit</button>
+                        <button class="btn-danger" onclick="deleteMenu(${item.id}, '${item.name.replace(/'/g, "")}')">Hapus</button>
+                    </td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ── 3. FORM MODAL LOGIC (ADD / EDIT) ──
+      function openModal(mode, id = null) {
+        const modal = document.getElementById("formModal");
+        const form = document.getElementById("menuForm");
+        const title = document.getElementById("modalTitle");
+
+        form.reset();
+        document.getElementById("formId").value = "";
+
+        if (mode === "add") {
+          title.innerText = "Tambah Menu Baru";
+        } else if (mode === "edit" && id) {
+          title.innerText = "Edit Menu";
+          const item = cachedData.find((d) => d.id === id);
+          if (item) {
+            document.getElementById("formId").value = item.id;
+            document.getElementById("formName").value = item.name;
+            document.getElementById("formPrice").value = item.price;
+            document.getElementById("formCategory").value = (
+              item.category || "main"
+            ).toLowerCase();
+            document.getElementById("formStars").value = item.stars || "5";
+            document.getElementById("formImage").value = item.image || item.img;
+            document.getElementById("formDesc").value = item.desc;
+            document.getElementById("formTags").value = item.tags;
+            document.getElementById("formRibbon").value = item.ribbon;
+          }
+        }
+        modal.classList.add("active");
+      }
+
+      function closeModal() {
+        document.getElementById("formModal").classList.remove("active");
+      }
+
+      // ── 4. CREATE / UPDATE (POST) ──
+      async function saveMenu() {
+        if (isSaving) return;
+
+        const form = document.getElementById("menuForm");
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        const rowId = document.getElementById("formId").value;
+        const payload = {
+          action: rowId ? "edit" : "add",
+          id: rowId || null,
+          data: {
+            name: document.getElementById("formName").value,
+            price: document.getElementById("formPrice").value,
+            category: document.getElementById("formCategory").value,
+            stars: document.getElementById("formStars").value,
+            image: document.getElementById("formImage").value,
+            desc: document.getElementById("formDesc").value,
+            tags: document.getElementById("formTags").value,
+            ribbon: document.getElementById("formRibbon").value,
+          },
+        };
+
+        const btnSave = document.getElementById("btnSave");
+        btnSave.innerText = "Menyimpan...";
+        isSaving = true;
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" }, // text/plain to avoid CORS preflight issues on some setups
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json();
+
+          if (json.status === "ok") {
+            showToast(
+              rowId ? "Perubahan disimpan!" : "Menu baru berhasil ditambahkan!",
+            );
+            closeModal();
+            fetchData(); // reload tabel
+          } else {
+            alert("Gagal: " + json.message);
+          }
+        } catch (err) {
+          alert("Terjadi kesalahan jaringan: " + err.message);
+        } finally {
+          btnSave.innerText = "Simpan Menu";
+          isSaving = false;
+        }
+      }
+
+      // ── 5. DELETE (POST) ──
+      async function deleteMenu(id, name) {
+        if (
+          !confirm(
+            `Yakin ingin menghapus menu "${name}"? Data yang dihapus tidak bisa dikembalikan.`,
+          )
+        )
+          return;
+
+        try {
+          const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "delete", id: id }),
+          });
+          const json = await res.json();
+
+          if (json.status === "ok") {
+            showToast("Menu berhasil dihapus!");
+            fetchData(); // reload tabel
+          } else {
+            alert("Gagal: " + json.message);
+          }
+        } catch (err) {
+          alert("Terjadi kesalahan jaringan: " + err.message);
+        }
+      }
+
+      // ── 6. UTILS ──
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.innerText = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+    </script>
+  </body>
+</html>
