@@ -1,1207 +1,360 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bistro Kekinian — Admin Dashboard</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <title>Bistro Kekinian - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
     <style>
-      :root {
-        --primary: #c0392b;
-        --primary-hover: #a93226;
-        --bg: #f8f9fa;
-        --surface: #ffffff;
-        --text: #2c3e50;
-        --text-light: #7f8c8d;
-        --border: #e0e6ed;
-        --success: #27ae60;
-        --danger: #e74c3c;
-      }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: "Inter", sans-serif;
-        background-color: var(--bg);
-        color: var(--text);
-        line-height: 1.5;
-      }
-
-      /* ── PIN OVERLAY ── */
-      #pinOverlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-      .pin-box {
-        background: var(--surface);
-        padding: 32px;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        text-align: center;
-        width: 90%;
-        max-width: 360px;
-      }
-      .pin-box h2 {
-        margin-bottom: 8px;
-        color: var(--text);
-      }
-      .pin-box p {
-        font-size: 0.9rem;
-        color: var(--text-light);
-        margin-bottom: 24px;
-      }
-      .pin-box input {
-        width: 100%;
-        padding: 12px;
-        font-size: 1.2rem;
-        text-align: center;
-        letter-spacing: 4px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        margin-bottom: 16px;
-        outline: none;
-      }
-      .pin-box input:focus {
-        border-color: var(--primary);
-      }
-      .pin-box button {
-        width: 100%;
-      }
-      #pinError {
-        color: var(--danger);
-        font-size: 0.85rem;
-        margin-top: -8px;
-        margin-bottom: 16px;
-        display: none;
-      }
-
-      /* ── HEADER ── */
-      .admin-header {
-        background: var(--surface);
-        padding: 20px 32px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .admin-header h1 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text);
-      }
-      .btn-view {
-        color: var(--text-light);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 500;
-      }
-      .btn-view:hover {
-        color: var(--primary);
-      }
-
-      /* ── TABS ── */
-      .admin-tabs {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 24px;
-        border-bottom: 2px solid var(--border);
-        padding-bottom: 12px;
-      }
-      .tab-btn {
-        background: transparent;
-        border: none;
-        font-family: "Inter", sans-serif;
-        font-weight: 600;
-        font-size: 1rem;
-        color: var(--text-light);
-        cursor: pointer;
-        padding: 8px 16px;
-        border-radius: 6px;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .tab-btn:hover {
-        color: var(--primary);
-        background: rgba(192, 57, 43, 0.05);
-      }
-      .tab-btn.active {
-        color: var(--primary);
-        background: rgba(192, 57, 43, 0.1);
-      }
-      .order-badge {
-        background: var(--danger);
-        color: white;
-        font-size: 0.75rem;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-weight: bold;
-      }
-
-      /* ── KANBAN ORDERS ── */
-      .orders-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-      }
-      .order-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        animation: slideIn 0.3s ease-out;
-      }
-      @keyframes slideIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .order-card.new {
-        border-color: var(--primary);
-        box-shadow: 0 4px 16px rgba(192, 57, 43, 0.15);
-      }
-      .order-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px dashed var(--border);
-        padding-bottom: 12px;
-      }
-      .order-id { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
-      .order-time { font-size: 0.75rem; color: var(--text-light); }
-      .order-meta { display: flex; flex-direction: column; gap: 4px; }
-      .order-name { font-weight: 600; font-size: 1.1rem; }
-      .order-table { font-size: 0.85rem; background: var(--bg); padding: 4px 8px; border-radius: 4px; display: inline-block; width: max-content; font-weight: 600; }
-      .order-detail {
-        background: var(--bg);
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        white-space: pre-wrap;
-        line-height: 1.6;
-      }
-      .order-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: auto;
-        padding-top: 12px;
-        border-top: 1px solid var(--border);
-      }
-      .order-total { font-weight: 700; font-size: 1.05rem; }
-
-      @keyframes pulseAlarm {
-        0% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-        70% { transform: translateX(-50%) scale(1.05); box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
-        100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-      }
-      .btn-alarm-stop {
-        display: none;
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--danger);
-        color: white;
-        border: none;
-        padding: 16px 32px;
-        font-size: 1.2rem;
-        font-weight: bold;
-        border-radius: 30px;
-        box-shadow: 0 10px 25px rgba(231, 76, 60, 0.5);
-        z-index: 10000;
-        cursor: pointer;
-        align-items: center;
-        gap: 10px;
-        animation: pulseAlarm 1.5s infinite;
-      }
-
-      /* ── MAIN CONTENT ── */
-      .container {
-        max-width: 1200px;
-        margin: 32px auto;
-        padding: 0 20px;
-      }
-
-      .toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-      }
-      .btn {
-        background: var(--primary);
-        color: #fff;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        font-family: "Inter", sans-serif;
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .btn:hover {
-        background: var(--primary-hover);
-      }
-      .btn-secondary {
-        background: var(--surface);
-        color: var(--text);
-        border: 1px solid var(--border);
-      }
-      .btn-secondary:hover {
-        background: var(--bg);
-      }
-      .btn-danger {
-        background: var(--danger);
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-      }
-      .btn-danger:hover {
-        background: #c0392b;
-      }
-      .btn-edit {
-        background: #3498db;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        margin-right: 8px;
-      }
-      .btn-edit:hover {
-        background: #2980b9;
-      }
-
-      /* ── TABLE ── */
-      .table-container {
-        background: var(--surface);
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-        overflow-x: auto;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-      }
-      th {
-        background: #f8fafc;
-        padding: 16px 20px;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--text-light);
-        border-bottom: 1px solid var(--border);
-        font-weight: 600;
-      }
-      td {
-        padding: 16px 20px;
-        font-size: 0.95rem;
-        border-bottom: 1px solid var(--border);
-        vertical-align: middle;
-      }
-      tr:last-child td {
-        border-bottom: none;
-      }
-
-      .td-img img {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        object-fit: cover;
-        background: #eee;
-      }
-      .td-name {
-        font-weight: 600;
-        color: var(--text);
-      }
-      .td-cat {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        background: #fdf2e9;
-        color: #e67e22;
-        text-transform: capitalize;
-      }
-      .td-desc {
-        max-width: 280px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--text-light);
-        font-size: 0.85rem;
-      }
-
-      /* ── LOADING & ERROR ── */
-      .loading-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-light);
-      }
-      .loading-spinner {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        border: 4px solid rgba(192, 57, 43, 0.1);
-        border-radius: 50%;
-        border-top-color: var(--primary);
-        animation: spin 1s ease-in-out infinite;
-        margin-bottom: 16px;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* ── MODAL FORM ── */
-      .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
-      }
-      .modal-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-      }
-      .modal-box {
-        background: var(--surface);
-        width: 90%;
-        max-width: 600px;
-        border-radius: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        max-height: 90vh;
-      }
-      .modal-header {
-        padding: 24px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .modal-header h2 {
-        font-size: 1.2rem;
-      }
-      .btn-close {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        color: var(--text-light);
-        cursor: pointer;
-      }
-
-      .modal-body {
-        padding: 20px;
-        overflow-y: auto;
-        flex: 1;
-      }
-      .form-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-      @media (min-width: 600px) {
-        .form-grid {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-      .form-group {
-        margin-bottom: 16px;
-        display: flex;
-        flex-direction: column;
-      }
-      .form-group.full {
-        grid-column: 1 / -1;
-      }
-      .form-group label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-light);
-        margin-bottom: 6px;
-      }
-      .form-group input,
-      .form-group select,
-      .form-group textarea {
-        padding: 10px 12px;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        font-family: inherit;
-        font-size: 0.95rem;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .form-group input:focus,
-      .form-group select:focus,
-      .form-group textarea:focus {
-        border-color: var(--primary);
-      }
-      .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
-      }
-
-      .modal-footer {
-        padding: 20px 24px;
-        border-top: 1px solid var(--border);
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-      }
-      .modal-footer button {
-        margin: 0;
-      }
-
-      /* Toast Notification */
-      #toast {
-        position: fixed;
-        bottom: -60px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #333;
-        color: #fff;
-        padding: 12px 24px;
-        border-radius: 30px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: bottom 0.3s;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      }
-      #toast.show {
-        bottom: 30px;
-      }
-
-      /* ── RESPONSIVE TWEAKS ── */
-      @media (max-width: 600px) {
-        .admin-header {
-          padding: 16px;
-          flex-direction: column;
-          gap: 8px;
-          text-align: center;
-        }
-        .toolbar {
-          flex-direction: column;
-          gap: 12px;
-        }
-        .toolbar .btn {
-          width: 100%;
-        }
-
-        /* Ubah tabel menjadi sistem card */
-        .table-container {
-          background: transparent;
-          box-shadow: none;
-        }
-        table,
-        thead,
-        tbody,
-        th,
-        td,
-        tr {
-          display: block;
-        }
-        thead {
-          display: none;
-        }
-        tr {
-          background: var(--surface);
-          border-radius: 12px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-          margin-bottom: 16px;
-          padding: 16px;
-          display: grid;
-          grid-template-columns: 70px 1fr;
-          grid-template-rows: auto auto auto auto;
-          gap: 8px 12px;
-        }
-        td {
-          padding: 0 !important;
-          border: none !important;
-        }
-        .td-img {
-          grid-column: 1;
-          grid-row: 1 / span 2;
-          display: flex;
-          align-items: flex-start;
-          justify-content: flex-start;
-        }
-        .td-img img {
-          width: 70px;
-          height: 70px;
-          border-radius: 8px;
-        }
-        td:nth-child(2) {
-          grid-column: 2;
-          grid-row: 1;
-        }
-        td:nth-child(3) {
-          grid-column: 2;
-          grid-row: 2;
-          display: flex;
-          align-items: center;
-        }
-        .td-desc {
-          grid-column: 1 / span 2;
-          grid-row: 3;
-          white-space: normal;
-          max-width: 100%;
-          font-size: 0.85rem;
-          color: var(--text-light);
-          border-top: 1px dashed var(--border) !important;
-          padding-top: 8px !important;
-          margin-top: 4px;
-        }
-        td:last-child {
-          grid-column: 1 / span 2;
-          grid-row: 4;
-          text-align: right !important;
-          padding-top: 8px !important;
-          border-top: 1px solid var(--border) !important;
-        }
-        .btn-edit,
-        .btn-danger {
-          padding: 8px 16px;
-          font-size: 0.85rem;
-        }
-
-        .modal-box {
-          width: 95%;
-          height: 95vh;
-          max-height: 95vh;
-        }
-        .modal-body {
-          padding: 16px;
-        }
-        .modal-footer {
-          padding: 16px;
-          flex-direction: column;
-        }
-        .modal-footer button {
-          width: 100%;
-          margin-bottom: 8px;
-        }
+      :root { --bg:#0f1117; --surface:#1a1d27; --surface2:#21253a; --border:#2a2f45; --text:#e8eaf6; --muted:#7b82a8; --accent:#e8522a; --accent-lt:#ff7b50; --amber:#f5a623; --green:#2ecc71; --blue:#3d8ef0; --sidebar-w:240px; }
+      * { box-sizing:border-box; margin:0; padding:0; }
+      body { font-family:"Inter",sans-serif; background:var(--bg); color:var(--text); line-height:1.5; min-height:100vh; }
+      #pinOverlay { position:fixed; inset:0; z-index:9999; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+      .pin-box { background:var(--surface); padding:40px 36px; border-radius:20px; border:1px solid var(--border); box-shadow:0 40px 80px rgba(0,0,0,0.5); text-align:center; width:90%; max-width:380px; }
+      .pin-logo { font-family:"Playfair Display",serif; font-size:1.6rem; background:linear-gradient(135deg,var(--accent),var(--amber)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:4px; }
+      .pin-box p { font-size:0.88rem; color:var(--muted); margin-bottom:28px; }
+      .pin-box input { width:100%; padding:14px; font-size:1.4rem; text-align:center; letter-spacing:8px; background:var(--bg); border:2px solid var(--border); border-radius:12px; color:var(--text); margin-bottom:16px; outline:none; font-family:"Inter",sans-serif; transition:border-color 0.2s; }
+      .pin-box input:focus { border-color:var(--accent); }
+      .pin-box button { width:100%; }
+      #pinError { color:#ff6b6b; font-size:0.82rem; margin-top:-8px; margin-bottom:16px; display:none; }
+      .app-shell { display:flex; min-height:100vh; }
+      .sidebar { width:var(--sidebar-w); background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px 0; position:fixed; top:0; left:0; height:100vh; z-index:100; transition:transform 0.3s; }
+      .sidebar-logo { padding:0 24px 24px; border-bottom:1px solid var(--border); }
+      .sidebar-logo h1 { font-family:"Playfair Display",serif; font-size:1.25rem; background:linear-gradient(135deg,var(--accent-lt),var(--amber)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+      .sidebar-logo p { font-size:0.75rem; color:var(--muted); margin-top:2px; }
+      .sidebar-nav { padding:20px 12px; flex:1; display:flex; flex-direction:column; gap:4px; }
+      .nav-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; cursor:pointer; font-size:0.92rem; font-weight:500; color:var(--muted); border:none; background:transparent; font-family:"Inter",sans-serif; width:100%; text-align:left; transition:all 0.2s; }
+      .nav-item:hover { background:var(--surface2); color:var(--text); }
+      .nav-item.active { background:rgba(232,82,42,0.15); color:var(--accent-lt); }
+      .nav-icon { font-size:1.1rem; width:22px; text-align:center; }
+      .nav-badge { margin-left:auto; background:var(--accent); color:white; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; min-width:22px; text-align:center; display:none; }
+      .sidebar-footer { padding:16px 12px; border-top:1px solid var(--border); }
+      .sidebar-footer a { display:flex; align-items:center; gap:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; padding:10px 14px; border-radius:10px; transition:all 0.2s; }
+      .sidebar-footer a:hover { background:var(--surface2); color:var(--text); }
+      .main-content { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; }
+      .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:18px 32px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:50; }
+      .topbar-title { font-size:1.15rem; font-weight:700; }
+      .topbar-sub { font-size:0.8rem; color:var(--muted); margin-top:1px; }
+      .topbar-right { display:flex; align-items:center; gap:16px; }
+      .sound-toggle-wrap { display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--muted); }
+      .toggle-switch { position:relative; width:38px; height:20px; }
+      .toggle-switch input { display:none; }
+      .toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:20px; cursor:pointer; transition:background 0.2s; }
+      .toggle-slider::before { content:""; position:absolute; top:3px; left:3px; width:14px; height:14px; background:white; border-radius:50%; transition:transform 0.2s; }
+      .toggle-switch input:checked + .toggle-slider { background:var(--accent); }
+      .toggle-switch input:checked + .toggle-slider::before { transform:translateX(18px); }
+      .btn-hamburger { display:none; background:none; border:none; color:var(--text); font-size:1.4rem; cursor:pointer; }
+      .page { padding:28px 32px; display:none; }
+      .page.active { display:block; }
+      .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:28px; }
+      .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:8px; position:relative; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
+      .stat-card:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(0,0,0,0.3); }
+      .stat-card::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--c,var(--accent)); }
+      .stat-icon { font-size:1.8rem; line-height:1; }
+      .stat-value { font-size:1.8rem; font-weight:800; }
+      .stat-label { font-size:0.78rem; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+      .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
+      .section-title { font-size:1rem; font-weight:700; }
+      .btn { background:var(--accent); color:#fff; border:none; padding:10px 20px; border-radius:8px; font-family:"Inter",sans-serif; font-weight:600; font-size:0.88rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+      .btn:hover { background:var(--accent-lt); transform:translateY(-1px); }
+      .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+      .btn-secondary:hover { background:var(--border); }
+      .btn-success { background:var(--green); color:#fff; }
+      .btn-success:hover { background:#27ae60; }
+      .btn-danger-sm { background:rgba(231,76,60,0.15); color:#ff6b6b; border:1px solid rgba(231,76,60,0.3); border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:"Inter",sans-serif; transition:all 0.2s; }
+      .btn-danger-sm:hover { background:rgba(231,76,60,0.3); }
+      .btn-edit-sm { background:rgba(61,142,240,0.15); color:#6fb3f5; border:1px solid rgba(61,142,240,0.3); border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:"Inter",sans-serif; transition:all 0.2s; margin-right:6px; }
+      .btn-edit-sm:hover { background:rgba(61,142,240,0.3); }
+      .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+      table { width:100%; border-collapse:collapse; text-align:left; }
+      thead { background:var(--surface2); }
+      th { padding:14px 18px; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); }
+      td { padding:14px 18px; font-size:0.9rem; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+      tr:last-child td { border-bottom:none; }
+      tr { transition:background 0.15s; }
+      tr:hover td { background:rgba(255,255,255,0.02); }
+      .td-img img { width:46px; height:46px; border-radius:8px; object-fit:cover; }
+      .td-name { font-weight:600; }
+      .td-price { font-size:0.82rem; color:var(--amber); margin-top:2px; font-weight:500; }
+      .td-cat { display:inline-block; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; background:rgba(245,166,35,0.15); color:var(--amber); text-transform:capitalize; border:1px solid rgba(245,166,35,0.3); }
+      .td-desc { max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--muted); font-size:0.82rem; }
+      .loading-state { text-align:center; padding:60px 20px; color:var(--muted); font-size:0.9rem; }
+      .loading-spinner { display:inline-block; width:36px; height:36px; border:3px solid rgba(232,82,42,0.2); border-radius:50%; border-top-color:var(--accent); animation:spin 0.8s linear infinite; margin-bottom:14px; }
+      @keyframes spin { to { transform:rotate(360deg); } }
+      .orders-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:18px; }
+      @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+      .order-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:14px; animation:slideUp 0.35s ease-out; transition:transform 0.2s,box-shadow 0.2s; }
+      .order-card:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(0,0,0,0.35); }
+      .order-card.new { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent),0 8px 24px rgba(232,82,42,0.2); }
+      .order-card.new::before { content:"NEW"; display:block; color:var(--accent-lt); font-size:0.7rem; font-weight:800; letter-spacing:2px; }
+      .order-header { display:flex; justify-content:space-between; align-items:center; }
+      .order-id { font-weight:800; color:var(--accent-lt); font-size:1rem; }
+      .order-time { font-size:0.72rem; color:var(--muted); }
+      .order-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .order-name { font-weight:700; font-size:1.05rem; }
+      .order-table { font-size:0.75rem; background:rgba(61,142,240,0.12); color:var(--blue); border:1px solid rgba(61,142,240,0.25); padding:3px 10px; border-radius:20px; font-weight:600; }
+      .order-detail { background:var(--surface2); border:1px solid var(--border); padding:12px 14px; border-radius:10px; font-size:0.87rem; white-space:pre-wrap; line-height:1.7; }
+      .order-footer { display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1px solid var(--border); margin-top:auto; }
+      .order-total { font-weight:800; font-size:1rem; color:var(--amber); }
+      .empty-state { text-align:center; padding:60px 20px; grid-column:1/-1; }
+      .empty-state-icon { font-size:3rem; margin-bottom:16px; }
+      .empty-state h3 { font-size:1.1rem; margin-bottom:6px; }
+      .empty-state p { font-size:0.88rem; color:var(--muted); }
+      .auto-refresh-dot { width:8px; height:8px; background:var(--green); border-radius:50%; display:inline-block; animation:blink 2s infinite; }
+      @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+      @keyframes pulseAlarm { 0%{transform:translateX(-50%) scale(1);box-shadow:0 0 0 0 rgba(231,76,60,0.8);} 70%{transform:translateX(-50%) scale(1.06);box-shadow:0 0 0 18px rgba(231,76,60,0);} 100%{transform:translateX(-50%) scale(1);box-shadow:0 0 0 0 rgba(231,76,60,0);} }
+      .btn-alarm-stop { display:none; position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#e74c3c,#c0392b); color:white; border:none; padding:16px 36px; font-size:1.1rem; font-weight:800; border-radius:50px; box-shadow:0 10px 30px rgba(231,76,60,0.6); z-index:10000; cursor:pointer; align-items:center; gap:10px; animation:pulseAlarm 1.2s infinite; letter-spacing:0.5px; }
+      .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); display:flex; justify-content:center; align-items:center; z-index:1000; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+      .modal-overlay.active { opacity:1; pointer-events:auto; }
+      .modal-box { background:var(--surface); width:90%; max-width:620px; border-radius:18px; border:1px solid var(--border); box-shadow:0 40px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; max-height:90vh; transform:scale(0.96); transition:transform 0.25s; }
+      .modal-overlay.active .modal-box { transform:scale(1); }
+      .modal-header { padding:24px 28px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+      .modal-header h2 { font-size:1.15rem; font-weight:700; }
+      .btn-close { background:var(--surface2); border:1px solid var(--border); width:32px; height:32px; border-radius:50%; font-size:1.1rem; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+      .btn-close:hover { background:var(--border); color:var(--text); }
+      .modal-body { padding:24px 28px; overflow-y:auto; flex:1; }
+      .form-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+      @media (min-width:600px) { .form-grid { grid-template-columns:1fr 1fr; } }
+      .form-group { display:flex; flex-direction:column; gap:6px; }
+      .form-group.full { grid-column:1/-1; }
+      .form-group label { font-size:0.8rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+      .form-group input,.form-group select,.form-group textarea { padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:0.92rem; color:var(--text); outline:none; transition:border-color 0.2s; }
+      .form-group input:focus,.form-group select:focus,.form-group textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(232,82,42,0.12); }
+      .form-group select option { background:var(--surface); color:var(--text); }
+      .form-group textarea { resize:vertical; min-height:80px; }
+      .modal-footer { padding:20px 28px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px; }
+      #toast { position:fixed; bottom:-60px; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:12px 28px; border-radius:50px; font-size:0.88rem; font-weight:600; transition:bottom 0.3s cubic-bezier(0.25,1,0.5,1); z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.3); white-space:nowrap; }
+      #toast.show { bottom:28px; }
+      .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; }
+      @media (max-width:768px) {
+        .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); }
+        .sidebar-overlay.show { display:block; } .main-content { margin-left:0; }
+        .btn-hamburger { display:block; } .page { padding:20px 16px; } .topbar { padding:14px 16px; }
+        .stat-grid { grid-template-columns:repeat(2,1fr); } .orders-grid { grid-template-columns:1fr; }
+        .table-wrap { background:transparent; border:none; }
+        table,thead,tbody,th,td,tr { display:block; } thead { display:none; }
+        tr { background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-bottom:14px; padding:16px; display:grid; grid-template-columns:56px 1fr; gap:8px 12px; }
+        td { padding:0 !important; border:none !important; }
+        .td-img { grid-column:1; grid-row:1/span 2; align-self:start; } .td-img img { width:56px; height:56px; }
+        td:nth-child(2) { grid-column:2; grid-row:1; } td:nth-child(3) { grid-column:2; grid-row:2; align-self:center; }
+        .td-desc { grid-column:1/span 2; grid-row:3; white-space:normal; max-width:100%; font-size:0.82rem; color:var(--muted); padding-top:8px !important; border-top:1px dashed var(--border) !important; }
+        td:last-child { grid-column:1/span 2; grid-row:4; text-align:right !important; padding-top:10px !important; border-top:1px solid var(--border) !important; }
+        .modal-box { width:96%; border-radius:16px; max-height:96vh; }
+        .modal-header,.modal-body,.modal-footer { padding:18px; }
+        .modal-footer { flex-direction:column; } .modal-footer button { width:100%; }
       }
     </style>
   </head>
   <body>
-    <!-- 1. PIN OVERLAY -->
     <div id="pinOverlay">
       <div class="pin-box">
-        <h2>Admin Login</h2>
-        <p>Masukkan PIN untuk mengelola menu.</p>
-        <input
-          type="password"
-          id="pinInput"
-          placeholder="••••"
-          maxlength="6"
-          autofocus
-          autocomplete="off"
-        />
+        <div class="pin-logo">Bistro Admin</div>
+        <p>Masukkan PIN untuk melanjutkan.</p>
+        <input type="password" id="pinInput" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" maxlength="6" autofocus autocomplete="off" />
         <div id="pinError">PIN salah. Coba lagi.</div>
-        <button class="btn" onclick="checkPin()">Masuk</button>
+        <button class="btn" onclick="checkPin()">Masuk &rarr;</button>
       </div>
     </div>
-
-    <!-- 2. HEADER -->
-    <header class="admin-header">
-      <h1>Dashboard Menu Bistro</h1>
-      <a href="/" class="btn-view" target="_blank">Lihat Website ↗</a>
-    </header>
-
-    <!-- 3. MAIN CONTENT -->
-    <main class="container">
-      
-      <div class="admin-tabs">
-        <button class="tab-btn active" id="tabBtnMenu" onclick="switchTab('menu')">🍽️ Kelola Menu</button>
-        <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">
-          🔔 Pesanan Masuk <span id="orderBadge" class="order-badge" style="display:none;">0</span>
-        </button>
-      </div>
-
-      <!-- TAB: KELOLA MENU -->
-      <div id="tabMenu" class="tab-content active">
-        <div class="toolbar">
-        <button class="btn btn-secondary" onclick="fetchData()">
-          🔄 Refresh Data
-        </button>
-        <button class="btn" onclick="openModal('add')">➕ Tambah Menu</button>
-      </div>
-
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Foto</th>
-              <th>Nama & Harga</th>
-              <th>Kategori</th>
-              <th>Deskripsi</th>
-              <th style="text-align: right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <tr>
-              <td colspan="5" class="loading-state">Menunggu login...</td>
-            </tr>
-          </tbody>
-        </table>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB: PESANAN MASUK -->
-      <div id="tabOrders" class="tab-content" style="display:none;">
-        <div class="toolbar">
-          <button class="btn btn-secondary" onclick="fetchOrders()">
-            🔄 Refresh Pesanan
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo"><h1>Bistro Admin</h1><p>Dashboard Pengelolaan</p></div>
+        <nav class="sidebar-nav">
+          <button class="nav-item active" id="tabBtnOrders" onclick="switchTab('orders')">
+            <span class="nav-icon">&#x1F514;</span> Pesanan Masuk
+            <span class="nav-badge" id="orderBadge">0</span>
           </button>
-          <div style="font-size: 0.9rem; color: var(--text-light); display: flex; align-items: center; gap: 8px;">
-            <span>Auto-refresh: 10s</span>
-            <label style="margin-left: 10px; font-weight:600; color:var(--text); cursor:pointer;">
-              <input type="checkbox" id="soundToggle" checked style="accent-color: var(--primary);"> Suara Notif
-            </label>
+          <button class="nav-item" id="tabBtnMenu" onclick="switchTab('menu')">
+            <span class="nav-icon">&#x1F37D;&#xFE0F;</span> Kelola Menu
+          </button>
+        </nav>
+        <div class="sidebar-footer"><a href="/" target="_blank"><span>&#x2197;</span> Lihat Website</a></div>
+      </aside>
+      <div class="main-content">
+        <header class="topbar">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <button class="btn-hamburger" onclick="openSidebar()">&#x2630;</button>
+            <div><div class="topbar-title" id="topbarTitle">Pesanan Masuk</div><div class="topbar-sub" id="topbarSub">Memantau pesanan secara real-time</div></div>
+          </div>
+          <div class="topbar-right">
+            <div class="sound-toggle-wrap">
+              <span>&#x1F514;</span>
+              <label class="toggle-switch"><input type="checkbox" id="soundToggle" checked /><span class="toggle-slider"></span></label>
+              <span>Suara</span>
+            </div>
+          </div>
+        </header>
+        <div class="page active" id="tabOrders">
+          <div class="stat-grid">
+            <div class="stat-card" style="--c:var(--accent);"><div class="stat-icon">&#x1F525;</div><div class="stat-value" id="statActive">&mdash;</div><div class="stat-label">Pesanan Aktif</div></div>
+            <div class="stat-card" style="--c:var(--amber);"><div class="stat-icon">&#x1F4CB;</div><div class="stat-value" id="statTotal">&mdash;</div><div class="stat-label">Total Pesanan</div></div>
+            <div class="stat-card" style="--c:var(--green);"><div class="stat-icon">&#x2705;</div><div class="stat-value" id="statDone">&mdash;</div><div class="stat-label">Selesai</div></div>
+            <div class="stat-card" style="--c:var(--blue);"><div class="stat-icon">&#x23F1;&#xFE0F;</div><div class="stat-value" id="statLast">&mdash;</div><div class="stat-label">ID Terbaru</div></div>
+          </div>
+          <div class="toolbar">
+            <div class="section-title" style="margin-bottom:0;">Antrian Pesanan</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="auto-refresh-dot"></span>
+              <span style="font-size:0.82rem;color:var(--muted);">Auto 10s</span>
+              <button class="btn btn-secondary" onclick="fetchOrders()">&#x21BA; Refresh</button>
+            </div>
+          </div>
+          <div class="orders-grid" id="ordersGrid"><div class="loading-state"><div class="loading-spinner"></div><br>Mengambil pesanan...</div></div>
+        </div>
+        <div class="page" id="tabMenu">
+          <div class="toolbar">
+            <div class="section-title" style="margin-bottom:0;">Daftar Menu</div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-secondary" onclick="fetchData()">&#x21BA; Refresh</button>
+              <button class="btn" onclick="openModal('add')">+ Tambah Menu</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Foto</th><th>Nama &amp; Harga</th><th>Kategori</th><th>Deskripsi</th><th style="text-align:right">Aksi</th></tr></thead>
+              <tbody id="tableBody"><tr><td colspan="5" class="loading-state">Menunggu login...</td></tr></tbody>
+            </table>
           </div>
         </div>
-        
-        <div class="orders-grid" id="ordersGrid">
-          <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px;">Belum ada data pesanan dimuat.</div>
-        </div>
       </div>
-
-    </main>
-
-    <!-- 4. MODAL FORM (Tambah/Edit) -->
+    </div>
     <div class="modal-overlay" id="formModal">
       <div class="modal-box">
-        <div class="modal-header">
-          <h2 id="modalTitle">Tambah Menu Baru</h2>
-          <button class="btn-close" onclick="closeModal()">&times;</button>
-        </div>
+        <div class="modal-header"><h2 id="modalTitle">Tambah Menu Baru</h2><button class="btn-close" onclick="closeModal()">&times;</button></div>
         <div class="modal-body">
           <form id="menuForm">
             <input type="hidden" id="formId" />
             <div class="form-grid">
-              <div class="form-group">
-                <label>Nama Menu</label>
-                <input
-                  type="text"
-                  id="formName"
-                  required
-                  placeholder="Contoh: Burger Wagyu"
-                />
-              </div>
-              <div class="form-group">
-                <label>Harga (dengan Rp)</label>
-                <input
-                  type="text"
-                  id="formPrice"
-                  required
-                  placeholder="Contoh: Rp 89.000"
-                />
-              </div>
-              <div class="form-group">
-                <label>Kategori</label>
-                <select id="formCategory" required>
-                  <option value="main">Main Course</option>
-                  <option value="appetizer">Appetizer</option>
-                  <option value="dessert">Dessert</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Rating (1-5)</label>
-                <select id="formStars" required>
-                  <option value="5">5 Bintang (Sempurna)</option>
-                  <option value="4">4 Bintang (Sangat Baik)</option>
-                  <option value="3">3 Bintang (Baik)</option>
-                  <option value="2">2 Bintang (Cukup)</option>
-                  <option value="1">1 Bintang (Kurang)</option>
-                </select>
-              </div>
-              <div class="form-group full">
-                <label>URL Gambar (Unsplash / Google Drive)</label>
-                <input
-                  type="url"
-                  id="formImage"
-                  required
-                  placeholder="https://images.unsplash.com/..."
-                />
-              </div>
-              <div class="form-group full">
-                <label>Deskripsi Pendek</label>
-                <textarea
-                  id="formDesc"
-                  required
-                  placeholder="Deskripsi makanan maksimal 3 kalimat..."
-                ></textarea>
-              </div>
-              <div class="form-group">
-                <label>Tags (pisahkan dengan koma)</label>
-                <input
-                  type="text"
-                  id="formTags"
-                  placeholder="Wagyu, Premium, Signature"
-                />
-              </div>
-              <div class="form-group">
-                <label>Label Ribbon (Pita Merah)</label>
-                <input
-                  type="text"
-                  id="formRibbon"
-                  placeholder="Kosongkan, atau isi: Best Seller"
-                />
-              </div>
+              <div class="form-group"><label>Nama Menu</label><input type="text" id="formName" required placeholder="Contoh: Burger Wagyu" /></div>
+              <div class="form-group"><label>Harga (dengan Rp)</label><input type="text" id="formPrice" required placeholder="Contoh: Rp 89.000" /></div>
+              <div class="form-group"><label>Kategori</label><select id="formCategory" required><option value="main">Main Course</option><option value="appetizer">Appetizer</option><option value="dessert">Dessert</option></select></div>
+              <div class="form-group"><label>Rating</label><select id="formStars" required><option value="5">5 Bintang (Sempurna)</option><option value="4">4 Bintang (Sangat Baik)</option><option value="3">3 Bintang (Baik)</option><option value="2">2 Bintang (Cukup)</option><option value="1">1 Bintang (Kurang)</option></select></div>
+              <div class="form-group full"><label>URL Gambar</label><input type="url" id="formImage" required placeholder="https://images.unsplash.com/..." /></div>
+              <div class="form-group full"><label>Deskripsi Pendek</label><textarea id="formDesc" required placeholder="Deskripsi makanan..."></textarea></div>
+              <div class="form-group"><label>Tags</label><input type="text" id="formTags" placeholder="Wagyu, Premium, Signature" /></div>
+              <div class="form-group"><label>Label Ribbon</label><input type="text" id="formRibbon" placeholder="Kosongkan, atau isi: Best Seller" /></div>
             </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button
-            class="btn btn-secondary"
-            onclick="closeModal()"
-            id="btnCancel"
-          >
-            Batal
-          </button>
-          <button class="btn" onclick="saveMenu()" id="btnSave">
-            Simpan Menu
-          </button>
+          <button class="btn btn-secondary" onclick="closeModal()" id="btnCancel">Batal</button>
+          <button class="btn" onclick="saveMenu()" id="btnSave">Simpan Menu</button>
         </div>
       </div>
     </div>
-
-    <!-- ALARM STOP BUTTON -->
-    <button class="btn-alarm-stop" id="stopAlarmBtn" onclick="stopAlarm()">
-      🔕 MATIKAN ALARM
-    </button>
-
-    <!-- TOAST NOTIFICATION -->
+    <button class="btn-alarm-stop" id="stopAlarmBtn" onclick="stopAlarm()">&#x1F515; MATIKAN ALARM</button>
     <div id="toast">Data disimpan!</div>
-
     <script>
-      /* ================================================================
-           🔧  KONFIGURASI URL APPS SCRIPT
-           Pastikan ini SAMA dengan yang ada di index.html!
-           ================================================================ */
-      const APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbwnXcOtBt0-x-aC6Cz91KR5mvpzSRYfzYsWEOCQJ-NoycAVFd8yBPAgQUDq_1TLQXUp/exec";
-      let sessionPin = "";
-      /* ================================================================ */
-
-      let cachedData = [];
-      let isSaving = false;
-
-      // ── 1. LOGIN LOGIC ──
-      const pinInput = document.getElementById("pinInput");
-      pinInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") checkPin();
-      });
-
-      async function checkPin() {
-        const val = pinInput.value.trim();
-        if (!val) return;
-
-        const btn = document.querySelector("#pinOverlay button");
-        const originalText = btn.innerText;
-        btn.innerText = "Memverifikasi...";
-        btn.disabled = true;
-
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "login", pin: val }),
-          });
-          const json = await res.json();
-
-          if (json.status === "ok") {
-            sessionPin = val;
-            document.getElementById("pinOverlay").style.display = "none";
-            fetchData(); // Load menu
-            switchTab('orders'); // Langsung buka tab pesanan!
-          } else {
-            throw new Error(json.message);
-          }
-        } catch (err) {
-          const errEl = document.getElementById("pinError");
-          errEl.innerText = err.message || "PIN salah. Coba lagi.";
-          errEl.style.display = "block";
-          pinInput.value = "";
-          pinInput.focus();
-        } finally {
-          btn.innerText = originalText;
-          btn.disabled = false;
-        }
+      const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbwnXcOtBt0-x-aC6Cz91KR5mvpzSRYfzYsWEOCQJ-NoycAVFd8yBPAgQUDq_1TLQXUp/exec";
+      let sessionPin="",cachedData=[],isSaving=false;
+      function openSidebar(){document.getElementById("sidebar").classList.add("open");document.getElementById("sidebarOverlay").classList.add("show");}
+      function closeSidebar(){document.getElementById("sidebar").classList.remove("open");document.getElementById("sidebarOverlay").classList.remove("show");}
+      const pinInput=document.getElementById("pinInput");
+      pinInput.addEventListener("keypress",(e)=>{if(e.key==="Enter")checkPin();});
+      async function checkPin(){
+        const val=pinInput.value.trim();if(!val)return;
+        const btn=document.querySelector("#pinOverlay button");btn.innerText="Memverifikasi...";btn.disabled=true;
+        try{
+          const res=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"login",pin:val})});
+          const json=await res.json();
+          if(json.status==="ok"){sessionPin=val;document.getElementById("pinOverlay").style.display="none";fetchData();switchTab("orders");}
+          else{throw new Error(json.message);}
+        }catch(err){const e=document.getElementById("pinError");e.innerText=err.message||"PIN salah.";e.style.display="block";pinInput.value="";pinInput.focus();}
+        finally{btn.innerText="Masuk \u2192";btn.disabled=false;}
       }
-
-      // ── 2. FETCH & RENDER DATA ──
-      async function fetchData() {
-        const tbody = document.getElementById("tableBody");
-        if (APPS_SCRIPT_URL === "PASTE_URL_DISINI") {
-          tbody.innerHTML = `<tr><td colspan="5" class="loading-state" style="color:var(--danger)">⚠️ Error: URL Apps Script belum dikonfigurasi di file admin.html</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = `<tr><td colspan="5" class="loading-state"><div class="loading-spinner"></div><br>Mengambil data dari server...</td></tr>`;
-
-        try {
-          const res = await fetch(APPS_SCRIPT_URL);
-          const json = await res.json();
-
-          if (json.status === "ok") {
-            cachedData = json.data;
-            renderTable(cachedData);
-          } else {
-            throw new Error(json.message);
-          }
-        } catch (err) {
-          tbody.innerHTML = `<tr><td colspan="5" class="loading-state" style="color:var(--danger)">⚠️ Gagal mengambil data: ${err.message}</td></tr>`;
-        }
+      async function fetchData(){
+        const tbody=document.getElementById("tableBody");
+        tbody.innerHTML=`<tr><td colspan="5" class="loading-state"><div class="loading-spinner"></div><br>Mengambil data...</td></tr>`;
+        try{const res=await fetch(APPS_SCRIPT_URL);const json=await res.json();if(json.status==="ok"){cachedData=json.data;renderTable(cachedData);}else{throw new Error(json.message);}}
+        catch(err){tbody.innerHTML=`<tr><td colspan="5" class="loading-state" style="color:#ff6b6b;">\u26A0\uFE0F Gagal: ${err.message}</td></tr>`;}
       }
-
-      function renderTable(data) {
-        const tbody = document.getElementById("tableBody");
-        tbody.innerHTML = "";
-
-        if (data.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="loading-state">Menu kosong. Silakan tambah menu baru.</td></tr>`;
-          return;
-        }
-
-        data.forEach((item) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-                    <td class="td-img"><img src="${item.image || item.img || "https://via.placeholder.com/50"}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"></td>
-                    <td>
-                        <div class="td-name">${item.name}</div>
-                        <div style="font-size:0.85rem; color:var(--text-light); margin-top:4px;">${item.price}</div>
-                    </td>
-                    <td><span class="td-cat">${item.category}</span></td>
-                    <td class="td-desc" title="${item.desc}">${item.desc}</td>
-                    <td style="text-align:right; white-space:nowrap;">
-                        <button class="btn-edit" onclick="openModal('edit', ${item.id})">Edit</button>
-                        <button class="btn-danger" onclick="deleteMenu(${item.id}, '${item.name.replace(/'/g, "")}')">Hapus</button>
-                    </td>
-                `;
+      function renderTable(data){
+        const tbody=document.getElementById("tableBody");tbody.innerHTML="";
+        if(data.length===0){tbody.innerHTML=`<tr><td colspan="5" class="loading-state">Menu kosong.</td></tr>`;return;}
+        data.forEach((item)=>{
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td class="td-img"><img src="${item.image||item.img||'https://via.placeholder.com/50'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"></td><td><div class="td-name">${item.name}</div><div class="td-price">${item.price}</div></td><td><span class="td-cat">${item.category}</span></td><td class="td-desc" title="${item.desc}">${item.desc}</td><td style="text-align:right;white-space:nowrap;"><button class="btn-edit-sm" onclick="openModal('edit',${item.id})">\u270F Edit</button><button class="btn-danger-sm" onclick="deleteMenu(${item.id},'${item.name.replace(/'/g,'')}')">\u00D7 Hapus</button></td>`;
           tbody.appendChild(tr);
         });
       }
-
-      // ── 3. FORM MODAL LOGIC (ADD / EDIT) ──
-      function openModal(mode, id = null) {
-        const modal = document.getElementById("formModal");
-        const form = document.getElementById("menuForm");
-        const title = document.getElementById("modalTitle");
-
-        form.reset();
-        document.getElementById("formId").value = "";
-
-        if (mode === "add") {
-          title.innerText = "Tambah Menu Baru";
-        } else if (mode === "edit" && id) {
-          title.innerText = "Edit Menu";
-          const item = cachedData.find((d) => d.id === id);
-          if (item) {
-            document.getElementById("formId").value = item.id;
-            document.getElementById("formName").value = item.name;
-            document.getElementById("formPrice").value = item.price;
-            document.getElementById("formCategory").value = (
-              item.category || "main"
-            ).toLowerCase();
-            document.getElementById("formStars").value = item.stars || "5";
-            document.getElementById("formImage").value = item.image || item.img;
-            document.getElementById("formDesc").value = item.desc;
-            document.getElementById("formTags").value = item.tags;
-            document.getElementById("formRibbon").value = item.ribbon;
-          }
+      function openModal(mode,id=null){
+        const form=document.getElementById("menuForm");form.reset();document.getElementById("formId").value="";
+        document.getElementById("modalTitle").innerText=mode==="add"?"Tambah Menu Baru":"Edit Menu";
+        if(mode==="edit"&&id){
+          const item=cachedData.find((d)=>d.id===id);
+          if(item){document.getElementById("formId").value=item.id;document.getElementById("formName").value=item.name;document.getElementById("formPrice").value=item.price;document.getElementById("formCategory").value=(item.category||"main").toLowerCase();document.getElementById("formStars").value=item.stars||"5";document.getElementById("formImage").value=item.image||item.img;document.getElementById("formDesc").value=item.desc;document.getElementById("formTags").value=item.tags;document.getElementById("formRibbon").value=item.ribbon;}
         }
-        modal.classList.add("active");
+        document.getElementById("formModal").classList.add("active");
       }
-
-      function closeModal() {
-        document.getElementById("formModal").classList.remove("active");
+      function closeModal(){document.getElementById("formModal").classList.remove("active");}
+      async function saveMenu(){
+        if(isSaving)return;const form=document.getElementById("menuForm");if(!form.checkValidity()){form.reportValidity();return;}
+        const rowId=document.getElementById("formId").value;
+        const payload={action:rowId?"edit":"add",id:rowId||null,pin:sessionPin,data:{name:document.getElementById("formName").value,price:document.getElementById("formPrice").value,category:document.getElementById("formCategory").value,stars:document.getElementById("formStars").value,image:document.getElementById("formImage").value,desc:document.getElementById("formDesc").value,tags:document.getElementById("formTags").value,ribbon:document.getElementById("formRibbon").value}};
+        const btnSave=document.getElementById("btnSave");btnSave.innerText="Menyimpan...";isSaving=true;
+        try{const res=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});const json=await res.json();if(json.status==="ok"){showToast(rowId?"\u2713 Perubahan disimpan!":"\u2713 Menu baru ditambahkan!");closeModal();fetchData();}else{alert("Gagal: "+json.message);}}
+        catch(err){alert("Kesalahan jaringan: "+err.message);}
+        finally{btnSave.innerText="Simpan Menu";isSaving=false;}
       }
-
-      // ── 4. CREATE / UPDATE (POST) ──
-      async function saveMenu() {
-        if (isSaving) return;
-
-        const form = document.getElementById("menuForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        const rowId = document.getElementById("formId").value;
-        const payload = {
-          action: rowId ? "edit" : "add",
-          id: rowId || null,
-          pin: sessionPin,
-          data: {
-            name: document.getElementById("formName").value,
-            price: document.getElementById("formPrice").value,
-            category: document.getElementById("formCategory").value,
-            stars: document.getElementById("formStars").value,
-            image: document.getElementById("formImage").value,
-            desc: document.getElementById("formDesc").value,
-            tags: document.getElementById("formTags").value,
-            ribbon: document.getElementById("formRibbon").value,
-          },
-        };
-
-        const btnSave = document.getElementById("btnSave");
-        btnSave.innerText = "Menyimpan...";
-        isSaving = true;
-
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" }, // text/plain to avoid CORS preflight issues on some setups
-            body: JSON.stringify(payload),
-          });
-          const json = await res.json();
-
-          if (json.status === "ok") {
-            showToast(
-              rowId ? "Perubahan disimpan!" : "Menu baru berhasil ditambahkan!",
-            );
-            closeModal();
-            fetchData(); // reload tabel
-          } else {
-            alert("Gagal: " + json.message);
-          }
-        } catch (err) {
-          alert("Terjadi kesalahan jaringan: " + err.message);
-        } finally {
-          btnSave.innerText = "Simpan Menu";
-          isSaving = false;
-        }
+      async function deleteMenu(id,name){
+        if(!confirm(`Yakin ingin menghapus "${name}"?`))return;
+        try{const res=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"delete",id:id,pin:sessionPin})});const json=await res.json();if(json.status==="ok"){showToast("\u2713 Menu dihapus!");fetchData();}else{alert("Gagal: "+json.message);}}
+        catch(err){alert("Kesalahan jaringan: "+err.message);}
       }
-
-      // ── 5. DELETE (POST) ──
-      async function deleteMenu(id, name) {
-        if (
-          !confirm(
-            `Yakin ingin menghapus menu "${name}"? Data yang dihapus tidak bisa dikembalikan.`,
-          )
-        )
-          return;
-
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "delete", id: id, pin: sessionPin }),
-          });
-          const json = await res.json();
-
-          if (json.status === "ok") {
-            showToast("Menu berhasil dihapus!");
-            fetchData(); // reload tabel
-          } else {
-            alert("Gagal: " + json.message);
-          }
-        } catch (err) {
-          alert("Terjadi kesalahan jaringan: " + err.message);
-        }
+      function showToast(msg){const t=document.getElementById("toast");t.innerText=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
+      let fetchInterval=null,knownOrderIds=new Set();
+      function switchTab(tab){
+        document.getElementById("tabMenu").classList.toggle("active",tab==="menu");
+        document.getElementById("tabOrders").classList.toggle("active",tab==="orders");
+        document.getElementById("tabBtnMenu").classList.toggle("active",tab==="menu");
+        document.getElementById("tabBtnOrders").classList.toggle("active",tab==="orders");
+        const titles={orders:["Pesanan Masuk","Memantau pesanan secara real-time"],menu:["Kelola Menu","Tambah, edit, atau hapus item menu"]};
+        document.getElementById("topbarTitle").innerText=titles[tab][0];
+        document.getElementById("topbarSub").innerText=titles[tab][1];
+        closeSidebar();
+        if(tab==="orders"){fetchOrders();if(!fetchInterval)fetchInterval=setInterval(fetchOrders,10000);}
+        else{if(fetchInterval){clearInterval(fetchInterval);fetchInterval=null;}}
       }
-
-      // ── 6. UTILS ──
-      function showToast(msg) {
-        const toast = document.getElementById("toast");
-        toast.innerText = msg;
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 3000);
+      let alarmInterval=null,audioCtx=null;
+      function startAlarm(){
+        const st=document.getElementById("soundToggle");if(st&&!st.checked)return;if(alarmInterval)return;
+        document.getElementById("stopAlarmBtn").style.display="flex";
+        alarmInterval=setInterval(()=>{
+          try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type="square";o.frequency.setValueAtTime(400,audioCtx.currentTime);o.frequency.linearRampToValueAtTime(800,audioCtx.currentTime+0.3);g.gain.setValueAtTime(0.5,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.4);o.start();o.stop(audioCtx.currentTime+0.4);}catch(e){console.warn("Audio failed",e);}
+          if("vibrate"in navigator)navigator.vibrate([300,100,300]);
+        },1000);
       }
-
-      /* ── 5. TAB & PESANAN (BARU) ── */
-      let fetchInterval = null;
-      let knownOrderIds = new Set();
-
-      function switchTab(tab) {
-        document.getElementById("tabMenu").style.display = tab === 'menu' ? 'block' : 'none';
-        document.getElementById("tabOrders").style.display = tab === 'orders' ? 'block' : 'none';
-        
-        document.getElementById("tabBtnMenu").classList.toggle('active', tab === 'menu');
-        document.getElementById("tabBtnOrders").classList.toggle('active', tab === 'orders');
-
-        if (tab === 'orders') {
-          fetchOrders();
-          if (!fetchInterval) fetchInterval = setInterval(fetchOrders, 10000);
-        } else {
-          if (fetchInterval) {
-            clearInterval(fetchInterval);
-            fetchInterval = null;
-          }
-        }
+      function stopAlarm(){if(alarmInterval){clearInterval(alarmInterval);alarmInterval=null;}if("vibrate"in navigator)navigator.vibrate(0);document.getElementById("stopAlarmBtn").style.display="none";}
+      async function fetchOrders(){
+        if(!sessionPin)return;
+        try{const res=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"getOrders",pin:sessionPin})});const json=await res.json();if(json.status==="ok")renderOrders(json.data);}
+        catch(err){console.error("Gagal mengambil pesanan",err);}
       }
-
-      let alarmInterval = null;
-      let audioCtx = null;
-
-      function startAlarm() {
-        const soundToggle = document.getElementById("soundToggle");
-        if (soundToggle && !soundToggle.checked) return;
-        
-        if (alarmInterval) return; // Sudah bunyi
-
-        document.getElementById("stopAlarmBtn").style.display = "flex";
-
-        alarmInterval = setInterval(() => {
-          // Play loud siren
-          try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.type = "square";
-            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.3);
-            
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime); // LOUD
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.4);
-          } catch (e) {
-            console.warn("Audio play failed", e);
-          }
-          
-          // Getaran HP
-          if ("vibrate" in navigator) {
-            navigator.vibrate([300, 100, 300]);
-          }
-        }, 1000);
-      }
-
-      function stopAlarm() {
-        if (alarmInterval) {
-          clearInterval(alarmInterval);
-          alarmInterval = null;
-        }
-        if ("vibrate" in navigator) {
-          navigator.vibrate(0);
-        }
-        document.getElementById("stopAlarmBtn").style.display = "none";
-      }
-
-      async function fetchOrders() {
-        if (!sessionPin) return;
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "getOrders", pin: sessionPin })
-          });
-          const json = await res.json();
-          if (json.status === "ok") {
-            renderOrders(json.data);
-          }
-        } catch (err) {
-          console.error("Gagal mengambil pesanan", err);
-        }
-      }
-
-      function renderOrders(data) {
-        const grid = document.getElementById("ordersGrid");
-        const badge = document.getElementById("orderBadge");
-        grid.innerHTML = "";
-        
-        const activeOrders = data.filter(o => o.status !== "Selesai" && o.status !== "Batal");
-        
-        if (activeOrders.length === 0) {
-          grid.innerHTML = `<div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px;">Belum ada pesanan masuk.</div>`;
-          badge.style.display = "none";
-          return;
-        }
-
-        badge.style.display = "inline-block";
-        badge.innerText = activeOrders.length;
-
-        let hasNew = false;
-        activeOrders.forEach(order => {
-          if (!knownOrderIds.has(order.id)) {
-            hasNew = true;
-            knownOrderIds.add(order.id);
-          }
-          
-          const card = document.createElement("div");
-          card.className = "order-card" + (order.status === "Baru" ? " new" : "");
-          card.innerHTML = `
-            <div class="order-header">
-              <span class="order-id">#${order.id}</span>
-              <span class="order-time">${order.waktu}</span>
-            </div>
-            <div class="order-meta">
-              <div class="order-name">${order.nama}</div>
-              <div class="order-table">${String(order.meja).toLowerCase().includes('meja') ? order.meja : 'Meja ' + order.meja}</div>
-            </div>
-            <div class="order-detail">${order.detail}</div>
-            <div class="order-footer">
-              <span class="order-total">${order.total}</span>
-              <button class="btn btn-danger" onclick="updateOrderStatus(${order.rowIdx}, 'Selesai')" style="background:var(--success)">Selesai ✔</button>
-            </div>
-          `;
+      function renderOrders(data){
+        const grid=document.getElementById("ordersGrid"),badge=document.getElementById("orderBadge");
+        const activeOrders=data.filter((o)=>o.status!=="Selesai"&&o.status!=="Batal");
+        const doneOrders=data.filter((o)=>o.status==="Selesai");
+        document.getElementById("statActive").innerText=activeOrders.length;
+        document.getElementById("statTotal").innerText=data.length;
+        document.getElementById("statDone").innerText=doneOrders.length;
+        document.getElementById("statLast").innerText=data.length>0?data[0].id:"\u2014";
+        grid.innerHTML="";
+        if(activeOrders.length===0){grid.innerHTML=`<div class="empty-state"><div class="empty-state-icon">\uD83C\uDF89</div><h3>Semua pesanan selesai!</h3><p>Tidak ada antrian aktif saat ini.</p></div>`;badge.style.display="none";return;}
+        badge.style.display="inline-block";badge.innerText=activeOrders.length;
+        let hasNew=false;
+        activeOrders.forEach((order)=>{
+          if(!knownOrderIds.has(order.id)){hasNew=true;knownOrderIds.add(order.id);}
+          const mejaLabel=String(order.meja).toLowerCase().includes("meja")?order.meja:"Meja "+order.meja;
+          const card=document.createElement("div");card.className="order-card"+(order.status==="Baru"?" new":"");
+          card.innerHTML=`<div class="order-header"><span class="order-id">${order.id}</span><span class="order-time">${order.waktu}</span></div><div class="order-meta"><div class="order-name">\uD83D\uDC64 ${order.nama}</div><div class="order-table">\uD83D\uDCCD ${mejaLabel}</div></div><div class="order-detail">${order.detail}</div><div class="order-footer"><span class="order-total">${order.total}</span><button class="btn btn-success" onclick="updateOrderStatus(${order.rowIdx},'Selesai')" style="padding:8px 18px;font-size:0.85rem;">\u2714 Selesai</button></div>`;
           grid.appendChild(card);
         });
-
-        if (hasNew) {
-          startAlarm();
-        }
+        if(hasNew)startAlarm();
       }
-
-      async function updateOrderStatus(rowIdx, newStatus) {
-        if(!confirm(`Tandai pesanan ini sebagai ${newStatus}?`)) return;
-        try {
-          const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "updateOrderStatus", pin: sessionPin, rowIdx: rowIdx, status: newStatus })
-          });
-          const json = await res.json();
-          if (json.status === "ok") {
-            showToast(`Pesanan ditandai ${newStatus}`);
-            fetchOrders();
-          } else {
-            alert(json.message);
-          }
-        } catch(err) {
-          alert("Gagal update status");
-        }
+      async function updateOrderStatus(rowIdx,newStatus){
+        if(!confirm(`Tandai pesanan ini sebagai ${newStatus}?`))return;
+        try{const res=await fetch(APPS_SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"updateOrderStatus",pin:sessionPin,rowIdx:rowIdx,status:newStatus})});const json=await res.json();if(json.status==="ok"){showToast("\u2713 Pesanan ditandai "+newStatus);fetchOrders();}else{alert(json.message);}}
+        catch(err){alert("Gagal update status");}
       }
     </script>
   </body>
