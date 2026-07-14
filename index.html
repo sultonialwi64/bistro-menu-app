@@ -736,7 +736,7 @@
         background: var(--ink);
         color: var(--cream);
         border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         z-index: 999;
         display: flex;
         justify-content: space-between;
@@ -811,7 +811,7 @@
       .scb-btn:hover {
         background: var(--amber-lt);
       }
-      
+
       /* ── CARD QUICK ADD CONTROLS ── */
       .card-cart-ctrl {
         display: flex;
@@ -841,7 +841,9 @@
         align-items: center;
         justify-content: center;
         line-height: 1;
-        transition: background 0.2s, transform 0.2s;
+        transition:
+          background 0.2s,
+          transform 0.2s;
       }
       .quick-add-btn:hover {
         background: var(--amber);
@@ -868,7 +870,7 @@
         text-align: center;
         color: var(--ink);
       }
-      
+
       /* ── NOTE DRAWER ── */
       #cartDrawer {
         position: fixed;
@@ -878,7 +880,7 @@
         max-width: 400px;
         height: 100%;
         background: var(--card);
-        box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
         z-index: 10000;
         transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         display: flex;
@@ -891,7 +893,7 @@
       #cartOverlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
         z-index: 9999;
         opacity: 0;
@@ -912,7 +914,7 @@
         color: var(--cream);
       }
       .drawer-header h3 {
-        font-family: 'Playfair Display', serif;
+        font-family: "Playfair Display", serif;
         font-size: 1.3rem;
         font-weight: 700;
         letter-spacing: 1px;
@@ -1257,20 +1259,46 @@
     <div id="shopeeCartBar" onclick="toggleCartDrawer(true)">
       <div class="scb-left">
         <div class="scb-icon-wrapper">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+            ></path>
             <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
           </svg>
-          <div id="cartBadge" class="scb-badge" style="display: none;">0</div>
+          <div id="cartBadge" class="scb-badge" style="display: none">0</div>
         </div>
         <div class="scb-info">
           <span class="scb-price" id="scbTotalPrice">Rp 0</span>
           <span class="scb-count" id="scbTotalCount">0 item dipilih</span>
         </div>
       </div>
-      <button class="scb-btn" onclick="event.stopPropagation(); toggleCartDrawer(true)">
+      <button
+        class="scb-btn"
+        onclick="
+          event.stopPropagation();
+          toggleCartDrawer(true);
+        "
+      >
         Lihat Catatan
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       </button>
@@ -1283,7 +1311,9 @@
     <div id="cartDrawer">
       <div class="drawer-header">
         <h3>Catatan Pesanan</h3>
-        <button class="drawer-close" onclick="toggleCartDrawer(false)">&times;</button>
+        <button class="drawer-close" onclick="toggleCartDrawer(false)">
+          &times;
+        </button>
       </div>
       <div class="drawer-body" id="cartDrawerBody">
         <!-- Ditambahkan dinamis via JS -->
@@ -1293,14 +1323,30 @@
           <span>Total Est.</span>
           <span id="cartDrawerTotal">Rp 0</span>
         </div>
-        
+
         <div class="order-form">
-          <input type="text" id="custName" placeholder="Nama Anda (Wajib)" class="order-input" autocomplete="off" />
-          <input type="text" id="custTable" placeholder="Nomor Meja (Opsional)" class="order-input" autocomplete="off" />
-          <button class="btn-checkout" id="btnCheckout" onclick="submitOrder()">Kirim Pesanan</button>
+          <input
+            type="text"
+            id="custName"
+            placeholder="Nama Anda (Wajib)"
+            class="order-input"
+            autocomplete="off"
+          />
+          <input
+            type="text"
+            id="custTable"
+            placeholder="Nomor Meja (Opsional)"
+            class="order-input"
+            autocomplete="off"
+          />
+          <button class="btn-checkout" id="btnCheckout" onclick="submitOrder()">
+            Kirim Pesanan
+          </button>
         </div>
-        
-        <button class="btn-clear-cart" onclick="clearCart()">Kosongkan Catatan</button>
+
+        <button class="btn-clear-cart" onclick="clearCart()">
+          Kosongkan Catatan
+        </button>
       </div>
     </div>
 
@@ -1312,7 +1358,7 @@
    2. Paste URL tersebut di bawah ini (ganti teks PASTE_URL_DISINI)
    ================================================================ */
       const APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbw8fGxMbsqXp4AeKmKDqRWbJDV2oiLhw7hH5aA-x71PuueNQDKP078qgoIKfATmGIFe/exec";
+        "https://script.google.com/macros/s/AKfycbwnXcOtBt0-x-aC6Cz91KR5mvpzSRYfzYsWEOCQJ-NoycAVFd8yBPAgQUDq_1TLQXUp/exec";
       // Contoh URL asli:
       // const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwXXXXXXXX/exec';
       /* ================================================================ */
@@ -1924,11 +1970,14 @@
         const priceEl = document.getElementById("scbTotalPrice");
         const countEl = document.getElementById("scbTotalCount");
 
-        const totalItems = window.CART_DATA.reduce((acc, item) => acc + item.qty, 0);
+        const totalItems = window.CART_DATA.reduce(
+          (acc, item) => acc + item.qty,
+          0,
+        );
 
         if (totalItems > 0) {
           let totalPrice = 0;
-          window.CART_DATA.forEach(item => {
+          window.CART_DATA.forEach((item) => {
             totalPrice += parsePrice(item.price) * item.qty;
           });
 
@@ -1942,12 +1991,12 @@
           bar.classList.remove("show");
           toggleCartDrawer(false); // Close if empty
         }
-        
+
         updateCardControls();
       }
 
       function addToCart(name, price, img) {
-        const existing = window.CART_DATA.find(item => item.name === name);
+        const existing = window.CART_DATA.find((item) => item.name === name);
         if (existing) {
           existing.qty += 1;
         } else {
@@ -1955,16 +2004,26 @@
         }
         localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
         updateCartUI();
-        
+
         // ShopeeFood sticky bar icon wrapper bounce animation
         const iconWrapper = document.querySelector(".scb-icon-wrapper");
         if (iconWrapper) {
-          gsap.fromTo(iconWrapper, { scale: 1 }, { scale: 1.25, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" });
+          gsap.fromTo(
+            iconWrapper,
+            { scale: 1 },
+            {
+              scale: 1.25,
+              duration: 0.12,
+              yoyo: true,
+              repeat: 1,
+              ease: "power2.out",
+            },
+          );
         }
       }
 
       function changeQty(name, amount) {
-        const idx = window.CART_DATA.findIndex(item => item.name === name);
+        const idx = window.CART_DATA.findIndex((item) => item.name === name);
         if (idx > -1) {
           window.CART_DATA[idx].qty += amount;
           if (window.CART_DATA[idx].qty <= 0) {
@@ -1990,12 +2049,12 @@
       }
 
       function updateCardControls() {
-        document.querySelectorAll(".card-cart-ctrl").forEach(ctrl => {
+        document.querySelectorAll(".card-cart-ctrl").forEach((ctrl) => {
           const idx = parseInt(ctrl.dataset.idx, 10);
           const item = window.MENU_DATA[idx];
           if (!item) return;
 
-          const cartItem = window.CART_DATA.find(ci => ci.name === item.name);
+          const cartItem = window.CART_DATA.find((ci) => ci.name === item.name);
           if (cartItem && cartItem.qty > 0) {
             ctrl.innerHTML = `
               <button class="quick-ctrl-btn minus" onclick="quickMinus(${idx})">−</button>
@@ -2043,7 +2102,7 @@
         }
 
         let totalPrice = 0;
-        window.CART_DATA.forEach(item => {
+        window.CART_DATA.forEach((item) => {
           const itemTotal = parsePrice(item.price) * item.qty;
           totalPrice += itemTotal;
 
@@ -2070,7 +2129,7 @@
       function handleModalAdd(idx) {
         const item = window.MENU_DATA[idx];
         if (!item) return;
-        
+
         const img = item.image || item.img || FALLBACK_IMG;
         addToCart(item.name, item.price, img);
 
@@ -2080,7 +2139,7 @@
         btn.innerText = "✓ Ditambahkan!";
         btn.style.background = "var(--amber)";
         btn.style.color = "var(--ink)";
-        
+
         setTimeout(() => {
           btn.innerText = originalText;
           btn.style.background = "";
@@ -2092,7 +2151,7 @@
       // URL Parameter & Table Auto-detection
       window.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
-        window.MEJA_NO = urlParams.get('meja') || "";
+        window.MEJA_NO = urlParams.get("meja") || "";
         const tableInput = document.getElementById("custTable");
         if (window.MEJA_NO && tableInput) {
           tableInput.value = "Meja " + window.MEJA_NO;
@@ -2103,20 +2162,21 @@
       });
 
       async function submitOrder() {
-        if (window.CART_DATA.length === 0) return alert("Catatan pesanan masih kosong.");
-        
+        if (window.CART_DATA.length === 0)
+          return alert("Catatan pesanan masih kosong.");
+
         const custName = document.getElementById("custName").value.trim();
         let custTable = document.getElementById("custTable").value.trim();
-        
+
         if (!custName) return alert("Mohon isi nama Anda terlebih dahulu.");
         if (window.MEJA_NO) custTable = window.MEJA_NO; // Paksa gunakan nomor meja dari URL jika ada
-        
+
         const btn = document.getElementById("btnCheckout");
         btn.innerText = "Mengirim...";
         btn.disabled = true;
 
         let total = 0;
-        const details = window.CART_DATA.map(item => {
+        const details = window.CART_DATA.map((item) => {
           total += parsePrice(item.price) * item.qty;
           return `${item.qty}x ${item.name}`;
         }).join("\n");
@@ -2127,23 +2187,29 @@
             nama: custName,
             meja: custTable || "-",
             total: formatPrice(total),
-            detail: details
-          }
+            detail: details,
+          },
         };
 
         try {
           const res = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
           });
           const json = await res.json();
           if (json.status === "ok") {
-            alert(`Pesanan berhasil terkirim! (ID: ${json.orderId})\nSilakan tunggu, pesanan Anda akan segera diproses.`);
+            alert(
+              `Pesanan berhasil terkirim! (ID: ${json.orderId})\nSilakan tunggu, pesanan Anda akan segera diproses.`,
+            );
             window.CART_DATA = [];
-            localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
+            localStorage.setItem(
+              "bistro_cart",
+              JSON.stringify(window.CART_DATA),
+            );
             document.getElementById("custName").value = "";
-            if (!window.MEJA_NO) document.getElementById("custTable").value = "";
+            if (!window.MEJA_NO)
+              document.getElementById("custTable").value = "";
             updateCartUI();
             renderCart();
             toggleCartDrawer(false);
