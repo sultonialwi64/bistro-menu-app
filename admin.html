@@ -1118,7 +1118,7 @@
             </div>
             <div class="order-meta">
               <div class="order-name">${order.nama}</div>
-              <div class="order-table">${order.meja.toLowerCase().includes('meja') ? order.meja : 'Meja ' + order.meja}</div>
+              <div class="order-table">${String(order.meja).toLowerCase().includes('meja') ? order.meja : 'Meja ' + order.meja}</div>
             </div>
             <div class="order-detail">${order.detail}</div>
             <div class="order-footer">
