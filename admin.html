@@ -207,6 +207,32 @@
       }
       .order-total { font-weight: 700; font-size: 1.05rem; }
 
+      @keyframes pulseAlarm {
+        0% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+        70% { transform: translateX(-50%) scale(1.05); box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
+        100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+      }
+      .btn-alarm-stop {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-radius: 30px;
+        box-shadow: 0 10px 25px rgba(231, 76, 60, 0.5);
+        z-index: 10000;
+        cursor: pointer;
+        align-items: center;
+        gap: 10px;
+        animation: pulseAlarm 1.5s infinite;
+      }
+
       /* ── MAIN CONTENT ── */
       .container {
         max-width: 1200px;
@@ -774,6 +800,11 @@
       </div>
     </div>
 
+    <!-- ALARM STOP BUTTON -->
+    <button class="btn-alarm-stop" id="stopAlarmBtn" onclick="stopAlarm()">
+      🔕 MATIKAN ALARM
+    </button>
+
     <!-- TOAST NOTIFICATION -->
     <div id="toast">Data disimpan!</div>
 
@@ -1035,38 +1066,57 @@
         }
       }
 
-      function playBeep() {
+      let alarmInterval = null;
+      let audioCtx = null;
+
+      function startAlarm() {
         const soundToggle = document.getElementById("soundToggle");
         if (soundToggle && !soundToggle.checked) return;
+        
+        if (alarmInterval) return; // Sudah bunyi
 
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(880, ctx.currentTime);
-          gain.gain.setValueAtTime(0.1, ctx.currentTime);
-          osc.start();
-          gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-          osc.stop(ctx.currentTime + 0.5);
+        document.getElementById("stopAlarmBtn").style.display = "flex";
+
+        alarmInterval = setInterval(() => {
+          // Play loud siren
+          try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = "square";
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+            
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime); // LOUD
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+          } catch (e) {
+            console.warn("Audio play failed", e);
+          }
           
-          setTimeout(() => {
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.type = "sine";
-            osc2.frequency.setValueAtTime(1046.50, ctx.currentTime);
-            gain2.gain.setValueAtTime(0.1, ctx.currentTime);
-            osc2.start();
-            gain2.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-            osc2.stop(ctx.currentTime + 0.5);
-          }, 150);
-        } catch (e) {
-          console.warn("Audio play failed", e);
+          // Getaran HP
+          if ("vibrate" in navigator) {
+            navigator.vibrate([300, 100, 300]);
+          }
+        }, 1000);
+      }
+
+      function stopAlarm() {
+        if (alarmInterval) {
+          clearInterval(alarmInterval);
+          alarmInterval = null;
         }
+        if ("vibrate" in navigator) {
+          navigator.vibrate(0);
+        }
+        document.getElementById("stopAlarmBtn").style.display = "none";
       }
 
       async function fetchOrders() {
@@ -1130,7 +1180,7 @@
         });
 
         if (hasNew) {
-          playBeep();
+          startAlarm();
         }
       }
 
