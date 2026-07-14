@@ -9,6 +9,7 @@ let fetchInterval = null;
 let knownOrderIds = new Set();
 let alarmInterval = null;
 let audioCtx = null;
+let lastOrders = [];
 
 // Expose functions to window for HTML inline event handlers
 window.openSidebar = function() {
@@ -175,6 +176,7 @@ window.switchTab = function(tab) {
   window.closeSidebar();
   
   if (tab === "orders" || tab === "history") {
+    if (lastOrders.length > 0) renderOrders(lastOrders);
     window.fetchOrders();
     if (!fetchInterval) fetchInterval = setInterval(window.fetchOrders, 10000);
   } else {
@@ -226,9 +228,17 @@ window.fetchOrders = async function() {
   if (!sessionPin) return;
   try {
     const orders = await adminGetOrders(sessionPin);
+    lastOrders = orders;
     renderOrders(orders);
   } catch (err) {
     console.error("Gagal mengambil pesanan", err);
+    if (lastOrders.length === 0) {
+      const historyBody = document.getElementById("historyTableBody");
+      if (historyBody) historyBody.innerHTML = `<tr><td colspan="6" class="loading-state" style="color:var(--red)">Gagal mengambil riwayat. Periksa koneksi internet Anda.</td></tr>`;
+      
+      const grid = document.getElementById("ordersGrid");
+      if (grid) grid.innerHTML = `<div class="empty-state"><h3>Gagal mengambil data</h3><p>Koneksi terputus. Sistem akan otomatis mencoba lagi.</p></div>`;
+    }
   }
 };
 
