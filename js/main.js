@@ -1,6 +1,5 @@
 import { APPS_SCRIPT_URL } from './config.js';
 import { parsePrice, formatRupiah, showToast } from './utils.js';
-import { submitOrder } from './api.js';
 
 /* ================================================================
    🔧  KONFIGURASI  — Edit bagian ini setelah setup Apps Script
@@ -878,5 +877,5 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 window.toggleCartDrawer = toggleCartDrawer;
 window.handleModalAdd = handleModalAdd;
-window.checkoutOrder = checkoutOrder;
+window.submitOrder = submitOrder;
 window.filterCat = filterCat;
