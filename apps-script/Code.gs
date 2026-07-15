@@ -150,8 +150,8 @@ function doPost(e) {
             return respond({ status: "error", message: "Fetch Error: " + err.toString() });
           }
           
-          // JANGAN SIMPAN KE GOOGLE SHEET DULU JIKA PAKAI MIDTRANS!
-          // Biarkan pesanan menggantung di browser sampai dibayar.
+          let initialStatus = "Menunggu Pembayaran";
+          orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, initialStatus]);
           return respond({ status: "ok", message: "Silakan bayar", orderId: orderId, token: snapToken, clientKey: MIDTRANS_CLIENT_KEY });
         }
         
@@ -184,20 +184,28 @@ function doPost(e) {
         }
         
         if (!isPaid) {
+          if (midtransJson.transaction_status === "expire" || midtransJson.transaction_status === "cancel") {
+            const raw = orderSheet.getDataRange().getValues();
+            for (let i = 1; i < raw.length; i++) {
+              if (raw[i][0] === orderId) {
+                orderSheet.getRange(i + 1, 7).setValue("Batal");
+                break;
+              }
+            }
+          }
           return respond({ status: "error", message: "Pembayaran belum lunas atau tidak valid" });
         }
-        // -----------------------------------------
         
         // SIMPAN KE GOOGLE SHEET SEKARANG KARENA SUDAH LUNAS
-        const nama = data.nama || "Tanpa Nama";
-        const meja = data.meja || "-";
-        const totalStr = String(data.total || "0");
-        const detail = data.detail || "";
-        const waktu = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy, HH.mm.ss");
+        const raw = orderSheet.getDataRange().getValues();
+        for (let i = 1; i < raw.length; i++) {
+          if (raw[i][0] === orderId) {
+            orderSheet.getRange(i + 1, 7).setValue("Lunas");
+            return respond({ status: "ok", message: "Pembayaran valid dan pesanan diperbarui" });
+          }
+        }
         
-        orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, "Lunas"]);
-        
-        return respond({ status: "ok", message: "Pembayaran valid dan pesanan disimpan" });
+        return respond({ status: "error", message: "Pesanan tidak ditemukan" });
       }
     }
 

@@ -860,15 +860,24 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
                 onSuccess: async function(result){
                   // Beritahu backend bahwa pembayaran lunas dan SIMPAN pesanan
                   try {
-                    // Masukkan orderId ke dalam data payload
                     payload.data.orderId = json.orderId;
                     
-                    await fetch(APPS_SCRIPT_URL, {
+                    const cpRes = await fetch(APPS_SCRIPT_URL, {
                       method: "POST",
+                      headers: { "Content-Type": "text/plain;charset=utf-8" },
                       body: JSON.stringify({ action: "confirm_payment", data: payload.data })
                     });
-                  } catch(e) { console.error("Gagal update status", e); }
-                  handleSuccess();
+                    const cpJson = await cpRes.json();
+                    
+                    if (cpJson.status === "ok") {
+                      handleSuccess();
+                    } else {
+                      showToast("Validasi pembayaran gagal: " + cpJson.message);
+                    }
+                  } catch(e) {
+                    showToast("Kesalahan saat validasi pesanan.");
+                    console.error(e);
+                  }
                 },
                 onPending: function(result){
                   showToast("Menunggu pembayaran Anda!");

@@ -1,6 +1,7 @@
 // js/admin.js
 import { adminLogin, adminGetOrders, adminUpdateOrderStatus, adminSaveMenu, adminDeleteMenu, fetchMenuData } from "./api.js";
 import { showToast } from "./utils.js";
+import { APPS_SCRIPT_URL } from "./config.js";
 
 let sessionPin = "";
 let cachedData = [];
@@ -246,6 +247,19 @@ window.fetchOrders = async function() {
     const orders = await adminGetOrders(sessionPin);
     lastOrders = orders;
     renderOrders(orders);
+    // Auto-check any "Menunggu Pembayaran" orders silently
+    const pendingOrders = orders.filter(o => o.status === "Menunggu Pembayaran");
+    if (pendingOrders.length > 0) {
+      pendingOrders.forEach(async (po) => {
+        try {
+          await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "confirm_payment", data: { orderId: po.id } })
+          });
+        } catch(e) { } // silent ignore
+      });
+    }
   } catch (err) {
     console.error("Gagal mengambil pesanan", err);
     if (lastOrders.length === 0) {
