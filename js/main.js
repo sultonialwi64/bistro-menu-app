@@ -874,8 +874,16 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
                 onError: function(result){
                   alert("Pembayaran gagal!");
                 },
-                onClose: function(){
-                  alert("Anda menutup pop-up sebelum menyelesaikan pembayaran.");
+                onClose: async function(){
+                  // Beritahu backend untuk membatalkan pesanan ini
+                  try {
+                    await fetch(APPS_SCRIPT_URL, {
+                      method: "POST",
+                      body: JSON.stringify({ action: "cancel_order", data: { orderId: json.orderId } })
+                    });
+                  } catch(e) { console.error("Gagal batal", e); }
+                  
+                  alert('Anda menutup popup tanpa menyelesaikan pembayaran. Pesanan dibatalkan.');
                 }
               });
             } else {

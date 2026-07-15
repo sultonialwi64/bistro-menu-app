@@ -195,6 +195,19 @@ function doPost(e) {
           }
         }
         return respond({ status: "error", message: "Order not found" });
+        
+      } else if (action === "cancel_order") {
+        const orderId = data.orderId;
+        if (!orderId) return respond({ status: "error", message: "Missing orderId" });
+        
+        const orders = orderSheet.getDataRange().getValues();
+        for (let i = 1; i < orders.length; i++) {
+          if (orders[i][0] == orderId) {
+            orderSheet.getRange(i + 1, 7).setValue("Batal");
+            return respond({ status: "ok", message: "Pesanan dibatalkan" });
+          }
+        }
+        return respond({ status: "error", message: "Order not found" });
       }
     }
 
