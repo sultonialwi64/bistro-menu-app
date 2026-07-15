@@ -830,6 +830,7 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
             nama: custName,
             meja: custTable || "-",
             total: formatRupiah(total),
+            totalInt: total,
             detail: details,
           },
         };
@@ -842,20 +843,38 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
           });
           const json = await res.json();
           if (json.status === "ok") {
-            alert(
-              `Pesanan berhasil terkirim! (ID: ${json.orderId})\nSilakan tunggu, pesanan Anda akan segera diproses.`,
-            );
-            window.CART_DATA = [];
-            localStorage.setItem(
-              "bistro_cart",
-              JSON.stringify(window.CART_DATA),
-            );
-            document.getElementById("custName").value = "";
-            if (!window.MEJA_NO)
-              document.getElementById("custTable").value = "";
-            updateCartUI();
-            renderCart();
-            toggleCartDrawer(false);
+            
+            const handleSuccess = () => {
+              alert(`Pesanan berhasil terkirim! (ID: ${json.orderId})\nSilakan tunggu, pesanan Anda akan segera diproses.`);
+              window.CART_DATA = [];
+              localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
+              document.getElementById("custName").value = "";
+              if (!window.MEJA_NO) document.getElementById("custTable").value = "";
+              updateCartUI();
+              renderCart();
+              toggleCartDrawer(false);
+            };
+
+            if (json.token && window.snap) {
+              window.snap.pay(json.token, {
+                onSuccess: function(result){
+                  handleSuccess();
+                },
+                onPending: function(result){
+                  alert("Menunggu pembayaran Anda!");
+                  handleSuccess();
+                },
+                onError: function(result){
+                  alert("Pembayaran gagal!");
+                },
+                onClose: function(){
+                  alert("Anda menutup pop-up sebelum menyelesaikan pembayaran.");
+                }
+              });
+            } else {
+              handleSuccess();
+            }
+            
           } else {
             alert("Gagal mengirim pesanan: " + json.message);
           }

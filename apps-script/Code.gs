@@ -7,6 +7,11 @@ const SHEET_TAB = "Menu"; // Ganti jika nama tab sheet berbeda
 const SHEET_ORDERS = "Pesanan"; // Tab untuk antrean pesanan
 const ADMIN_PIN = "123456"; // PIN rahasia kamu, aman di server Google, tidak bisa di-inspect browser!
 
+// Kredensial Midtrans Sandbox
+const MIDTRANS_SERVER_KEY = "MASUKKAN_SERVER_KEY_ANDA_DI_SINI";
+const MIDTRANS_CLIENT_KEY = "Mid-client-xPqUKBElwKUA7dwJ";
+const MIDTRANS_URL = "https://app.sandbox.midtrans.com/snap/v1/transactions";
+
 function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -47,6 +52,37 @@ function doPost(e) {
       return respond({ status: "error", message: "Invalid request payload" });
     }
 
+    // ========================================================
+    // MIDTRANS WEBHOOK HANDLER
+    // ========================================================
+    if (req.transaction_status && req.order_id) {
+      const status = req.transaction_status;
+      const orderId = req.order_id;
+      
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      let orderSheet = ss.getSheetByName(SHEET_ORDERS);
+      if (orderSheet) {
+        const raw = orderSheet.getDataRange().getValues();
+        let newStatus = "";
+        
+        if (status === 'settlement' || status === 'capture') {
+          newStatus = "Baru (Lunas)";
+        } else if (status === 'cancel' || status === 'expire' || status === 'deny') {
+          newStatus = "Batal";
+        }
+        
+        if (newStatus !== "") {
+          for (let i = 1; i < raw.length; i++) {
+            if (raw[i][0] === orderId) {
+              orderSheet.getRange(i + 1, 7).setValue(newStatus);
+              break;
+            }
+          }
+        }
+      }
+      return respond({ status: "ok", message: "Webhook processed" });
+    }
+
     const action = req.action;
     const clientPin = req.pin;
 
@@ -69,12 +105,47 @@ function doPost(e) {
       const waktu = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
       const nama = data.nama || "Tanpa Nama";
       const meja = data.meja || "-";
-      const total = data.total || "";
+      const totalStr = data.total || "";
       const detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
-      const status = "Baru";
       
-      orderSheet.appendRow([orderId, waktu, nama, meja, total, detail, status]);
-      return respond({ status: "ok", message: "Pesanan berhasil dikirim!", orderId: orderId });
+      let totalInt = data.totalInt ? data.totalInt : (parseInt(totalStr.replace(/[^0-9]/g, "")) || 0);
+      
+      // Request ke Midtrans Snap API
+      let snapToken = "";
+      if (totalInt > 0) {
+        const authHeader = "Basic " + Utilities.base64Encode(MIDTRANS_SERVER_KEY + ":");
+        const payloadMidtrans = {
+          transaction_details: {
+            order_id: orderId,
+            gross_amount: totalInt
+          },
+          customer_details: {
+            first_name: nama
+          }
+        };
+        const options = {
+          method: "post",
+          contentType: "application/json",
+          headers: { "Authorization": authHeader, "Accept": "application/json" },
+          payload: JSON.stringify(payloadMidtrans),
+          muteHttpExceptions: true
+        };
+        
+        try {
+          const resMidtrans = UrlFetchApp.fetch(MIDTRANS_URL, options);
+          const midtransJson = JSON.parse(resMidtrans.getContentText());
+          if (midtransJson.token) {
+            snapToken = midtransJson.token;
+          }
+        } catch(err) {
+          // Ignore midtrans error, proceed with manual checkout
+        }
+      }
+      
+      const status = snapToken ? "Menunggu Pembayaran" : "Baru";
+      
+      orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, status]);
+      return respond({ status: "ok", message: "Pesanan berhasil dikirim!", orderId: orderId, token: snapToken, clientKey: MIDTRANS_CLIENT_KEY });
     }
 
     // ========================================================
