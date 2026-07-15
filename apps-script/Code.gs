@@ -311,3 +311,49 @@ function respond(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+// ========================================================
+// FUNGSI UNTUK MENGISI MENU DUMMY SECARA OTOMATIS
+// ========================================================
+function isikanDummyMenu() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_TAB) || ss.getActiveSheet();
+  
+  // Hapus semua data yang ada (kecuali baris 1 jika itu header, tapi kita buat ulang saja)
+  sheet.clear();
+  
+  // Buat Header
+  sheet.appendRow(["name", "desc", "price", "category", "tags", "image", "stars", "ribbon"]);
+  
+  // Data Dummy Komplit
+  const dummyData = [
+    ["Truffle Wagyu Steak", "Daging wagyu A5 panggang dengan saus truffle mushroom, disajikan bersama mashed potato lembut.", "250000", "main course", "Chef's Recommendation, Halal", "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=500&q=80", "5", "Best Seller"],
+    ["Salmon En Croute", "Salmon Norwegia segar yang dibalut puff pastry renyah dengan isian bayam krim dan keju parmesan.", "145000", "main course", "Seafood, Premium", "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500&q=80", "4.8", "New"],
+    ["Nasi Goreng Kampung Sultan", "Nasi goreng bumbu rempah nusantara dengan sate lilit ayam, telur mata sapi, dan kerupuk udang.", "65000", "main course", "Lokal, Pedas", "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=500&q=80", "4.7", ""],
+    ["Chicken Parmigiana", "Dada ayam berlapis tepung panir, digoreng renyah, disiram saus tomat basil dan keju mozzarella leleh.", "85000", "main course", "Western, Ayam", "https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=500&q=80", "4.5", ""],
+    
+    ["Calamari Rings", "Cumi goreng tepung renyah dengan saus tartar spesial Bistro Kekinian.", "45000", "appetizer", "Seafood, Snack", "https://images.unsplash.com/photo-1599487405270-bc071516d87a?w=500&q=80", "4.6", ""],
+    ["Truffle French Fries", "Kentang goreng renyah yang ditaburi truffle oil dan keju parmesan segar.", "40000", "appetizer", "Snack, Vegetarian", "https://images.unsplash.com/photo-1576107232684-1279f390859f?w=500&q=80", "4.9", "Must Try"],
+    ["Caesar Salad", "Selada romaine segar dengan saus caesar buatan sendiri, crouton, dan irisan dada ayam panggang.", "55000", "appetizer", "Healthy, Ayam", "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=500&q=80", "4.5", ""],
+    
+    ["Classic Tiramisu", "Kue bolu lapis espresso dengan krim mascarpone Italia autentik dan taburan bubuk kakao.", "50000", "dessert", "Sweet, Kopi", "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=500&q=80", "4.8", "Recommended"],
+    ["Lava Cake Chocolate", "Kue cokelat hangat dengan isian cokelat lumer di dalam, disajikan dengan es krim vanilla.", "45000", "dessert", "Sweet, Cokelat", "https://images.unsplash.com/photo-1611003444855-667954d24669?w=500&q=80", "4.9", ""],
+    ["Panna Cotta Berries", "Puding krim Italia klasik yang lembut dengan saus mix berries yang segar.", "40000", "dessert", "Sweet, Fruity", "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80", "4.6", ""],
+    
+    ["Signature Iced Coffee", "Es kopi susu kekinian dengan gula aren asli dan krimer premium yang creamy.", "35000", "beverage", "Cold, Kopi", "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba1?w=500&q=80", "4.7", "Bistro Pick"],
+    ["Strawberry Mojito", "Minuman soda menyegarkan dengan daun mint, jeruk nipis, dan potongan buah stroberi segar.", "38000", "beverage", "Cold, Segar", "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&q=80", "4.5", ""],
+    ["Matcha Latte", "Minuman green tea premium dari Jepang yang disajikan hangat dengan susu segar.", "40000", "beverage", "Hot, Teh", "https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?w=500&q=80", "4.6", ""],
+    ["Earl Grey Tea", "Teh Earl Grey premium khas Inggris yang disajikan dalam teko kaca elegan.", "30000", "beverage", "Hot, Teh", "https://images.unsplash.com/photo-1594631252845-29fc4cc8c0a1?w=500&q=80", "4.4", ""]
+  ];
+  
+  // Masukkan data ke sheet
+  dummyData.forEach(row => {
+    sheet.appendRow(row);
+  });
+  
+  // Rapikan sheet sedikit
+  sheet.getRange("A1:H1").setFontWeight("bold");
+  sheet.setFrozenRows(1);
+  
+  return "Data Dummy berhasil ditambahkan ke tab " + sheet.getName();
+}
