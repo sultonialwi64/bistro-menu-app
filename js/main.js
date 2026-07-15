@@ -917,3 +917,5 @@ window.toggleCartDrawer = toggleCartDrawer;
 window.handleModalAdd = handleModalAdd;
 window.submitOrder = submitOrder;
 window.filterCat = filterCat;
+window.clearCart = clearCart;
+window.changeQty = changeQty;
