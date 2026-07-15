@@ -154,14 +154,14 @@ window.deleteMenu = async function(id, name) {
   btnOk.innerText = "Hapus";
   btnOk.style.background = "var(--accent)";
   
-  modal.style.display = "flex";
+  modal.classList.add("active");
   
   document.getElementById("btnConfirmCancel").onclick = function() {
-    modal.style.display = "none";
+    modal.classList.remove("active");
   };
   
   btnOk.onclick = async function() {
-    modal.style.display = "none";
+    modal.classList.remove("active");
     try {
       await adminDeleteMenu(id, sessionPin);
       showToast("✔ Menu dihapus!");
@@ -347,14 +347,14 @@ window.updateOrderStatus = async function(rowIdx, newStatus) {
   btnOk.innerText = "Selesai";
   btnOk.style.background = "var(--green)";
   
-  modal.style.display = "flex";
+  modal.classList.add("active");
   
   document.getElementById("btnConfirmCancel").onclick = function() {
-    modal.style.display = "none";
+    modal.classList.remove("active");
   };
   
   btnOk.onclick = async function() {
-    modal.style.display = "none";
+    modal.classList.remove("active");
     try {
       await adminUpdateOrderStatus(sessionPin, rowIdx, newStatus);
       showToast("✔ Pesanan ditandai " + newStatus);
