@@ -68,7 +68,7 @@ function renderTable(data) {
   }
   data.forEach((item) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="td-img"><img src="${item.image || item.img || 'https://via.placeholder.com/50'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50'"></td>
+    tr.innerHTML = `<td class="td-img"><img src="${item.image || item.img || 'https://via.placeholder.com/50'}" alt="${item.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/50'"></td>
     <td><div class="td-name">${item.name}</div><div class="td-price">${item.price}</div></td>
     <td><span class="td-cat">${item.category}</span></td>
     <td class="td-desc" title="${item.desc}">${item.desc}</td>
