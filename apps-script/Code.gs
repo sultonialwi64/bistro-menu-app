@@ -12,6 +12,10 @@ const MIDTRANS_SERVER_KEY = "MASUKKAN_SERVER_KEY_ANDA_DI_SINI";
 const MIDTRANS_CLIENT_KEY = "Mid-client-xPqUKBElwKUA7dwJ";
 const MIDTRANS_URL = "https://app.sandbox.midtrans.com/snap/v1/transactions";
 
+function pancingIzin() {
+  UrlFetchApp.fetch("https://google.com");
+}
+
 function doGet(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -101,51 +105,97 @@ function doPost(e) {
       }
       
       const data = req.data || {};
-      const orderId = "ORD-" + new Date().getTime().toString().slice(-5);
-      const waktu = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
-      const nama = data.nama || "Tanpa Nama";
-      const meja = data.meja || "-";
-      const totalStr = data.total || "";
-      const detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
-      
-      let totalInt = data.totalInt ? data.totalInt : (parseInt(totalStr.replace(/[^0-9]/g, "")) || 0);
-      
-      // Request ke Midtrans Snap API
-      let snapToken = "";
-      if (totalInt > 0) {
-        const authHeader = "Basic " + Utilities.base64Encode(MIDTRANS_SERVER_KEY + ":");
-        const payloadMidtrans = {
-          transaction_details: {
-            order_id: orderId,
-            gross_amount: totalInt
-          },
-          customer_details: {
-            first_name: nama
+
+      if (action === "order") {
+        const orderId = "ORD-" + Math.floor(10000 + Math.random() * 90000);
+        const nama = data.nama || "Tanpa Nama";
+        const meja = data.meja || "-";
+        const totalStr = String(data.total || "0");
+        let totalInt = data.totalInt ? data.totalInt : (parseInt(totalStr.replace(/[^0-9]/g, "")) || 0);
+        const detail = data.detail || "";
+        const waktu = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy, HH.mm.ss");
+        
+        let snapToken = "";
+        
+        // Jika pesanan tidak gratis (Rp 0), buat transaksi Midtrans
+        if (totalInt > 0) {
+          const payloadMidtrans = {
+            transaction_details: {
+              order_id: orderId,
+              gross_amount: totalInt
+            },
+            customer_details: {
+              first_name: nama
+            }
+          };
+          
+          const authHeader = "Basic " + Utilities.base64Encode(MIDTRANS_SERVER_KEY + ":");
+          const options = {
+            method: "post",
+            contentType: "application/json",
+            headers: { "Authorization": authHeader, "Accept": "application/json" },
+            payload: JSON.stringify(payloadMidtrans),
+            muteHttpExceptions: true
+          };
+          
+          try {
+            const resMidtrans = UrlFetchApp.fetch(MIDTRANS_URL, options);
+            const midtransJson = JSON.parse(resMidtrans.getContentText());
+            if (midtransJson.token) {
+              snapToken = midtransJson.token;
+            } else {
+              return respond({ status: "error", message: "Midtrans API Error: " + resMidtrans.getContentText() });
+            }
+          } catch(err) {
+            return respond({ status: "error", message: "Fetch Error: " + err.toString() });
           }
-        };
+        }
+        
+        const status = snapToken ? "Menunggu Pembayaran" : "Baru";
+        
+        orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, status]);
+        
+        return respond({ status: "ok", message: "Pesanan berhasil dikirim!", orderId: orderId, token: snapToken, clientKey: MIDTRANS_CLIENT_KEY });
+        
+      } else if (action === "confirm_payment") {
+        const orderId = data.orderId;
+        if (!orderId) return respond({ status: "error", message: "Missing orderId" });
+        
+        // --- VERIFIKASI KEAMANAN (ANTI HACKER) ---
+        // Kita tanya langsung ke server Midtrans apakah order ini BENAR-BENAR sudah dibayar!
+        const authHeader = "Basic " + Utilities.base64Encode(MIDTRANS_SERVER_KEY + ":");
         const options = {
-          method: "post",
-          contentType: "application/json",
+          method: "get",
           headers: { "Authorization": authHeader, "Accept": "application/json" },
-          payload: JSON.stringify(payloadMidtrans),
           muteHttpExceptions: true
         };
         
+        let isPaid = false;
         try {
-          const resMidtrans = UrlFetchApp.fetch(MIDTRANS_URL, options);
-          const midtransJson = JSON.parse(resMidtrans.getContentText());
-          if (midtransJson.token) {
-            snapToken = midtransJson.token;
+          const res = UrlFetchApp.fetch("https://api.sandbox.midtrans.com/v2/" + orderId + "/status", options);
+          const midtransJson = JSON.parse(res.getContentText());
+          
+          if (midtransJson.transaction_status === "settlement" || midtransJson.transaction_status === "capture") {
+            isPaid = true;
           }
-        } catch(err) {
-          // Ignore midtrans error, proceed with manual checkout
+        } catch(e) {
+          return respond({ status: "error", message: "Gagal verifikasi ke Midtrans" });
         }
+        
+        if (!isPaid) {
+          return respond({ status: "error", message: "Pembayaran belum lunas atau tidak valid" });
+        }
+        // -----------------------------------------
+        
+        const orders = orderSheet.getDataRange().getValues();
+        for (let i = 1; i < orders.length; i++) {
+          if (orders[i][0] == orderId) {
+            orderSheet.getRange(i + 1, 7).setValue("Lunas");
+            return respond({ status: "ok", message: "Pembayaran valid dan dikonfirmasi" });
+          }
+        }
+        return respond({ status: "error", message: "Order not found" });
       }
-      
-      const status = snapToken ? "Menunggu Pembayaran" : "Baru";
-      
-      orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, status]);
-      return respond({ status: "ok", message: "Pesanan berhasil dikirim!", orderId: orderId, token: snapToken, clientKey: MIDTRANS_CLIENT_KEY });
     }
 
     // ========================================================

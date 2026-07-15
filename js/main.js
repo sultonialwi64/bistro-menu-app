@@ -857,7 +857,14 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
 
             if (json.token && window.snap) {
               window.snap.pay(json.token, {
-                onSuccess: function(result){
+                onSuccess: async function(result){
+                  // Beritahu backend bahwa pembayaran lunas
+                  try {
+                    await fetch(APPS_SCRIPT_URL, {
+                      method: "POST",
+                      body: JSON.stringify({ action: "confirm_payment", data: { orderId: json.orderId } })
+                    });
+                  } catch(e) { console.error("Gagal update status", e); }
                   handleSuccess();
                 },
                 onPending: function(result){

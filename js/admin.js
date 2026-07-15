@@ -271,11 +271,22 @@ function renderOrders(data) {
       const mejaLabel = String(order.meja).toLowerCase().includes("meja") ? order.meja : "Meja " + order.meja;
       const card = document.createElement("div");
       card.className = "order-card" + (order.status === "Baru" ? " new" : "");
-      card.innerHTML = `<div class="order-header"><span class="order-id">${order.id}</span><span class="order-time">${order.waktu}</span></div>
-      <div class="order-meta"><div class="order-name">\uD83D\uDC64 ${order.nama}</div><div class="order-table">\uD83D\uDCCD ${mejaLabel}</div></div>
+      let statusBadge = "";
+      if (order.status === "Menunggu Pembayaran") {
+        statusBadge = `<span style="background:#f39c12;color:#fff;padding:2px 8px;border-radius:12px;font-size:0.75rem;margin-left:8px;">Menunggu Pembayaran (Midtrans)</span>`;
+      } else if (order.status === "Lunas") {
+        statusBadge = `<span style="background:var(--green);color:#fff;padding:2px 8px;border-radius:12px;font-size:0.75rem;margin-left:8px;">Sudah Dibayar (Midtrans)</span>`;
+      } else if (order.status === "Baru") {
+         statusBadge = `<span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:12px;font-size:0.75rem;margin-left:8px;">Bayar di Kasir</span>`;
+      } else {
+        statusBadge = `<span style="background:#555;color:#fff;padding:2px 8px;border-radius:12px;font-size:0.75rem;margin-left:8px;">${order.status}</span>`;
+      }
+
+      card.innerHTML = `<div class="order-header"><span class="order-id">${order.id}${statusBadge}</span><span class="order-time">${order.waktu}</span></div>
+      <div class="order-meta"><div class="order-name">👤 ${order.nama}</div><div class="order-table">📍 ${mejaLabel}</div></div>
       <div class="order-detail">${order.detail}</div>
       <div class="order-footer"><span class="order-total">${order.total}</span>
-        <button class="btn btn-success" onclick="updateOrderStatus(${order.rowIdx}, 'Selesai')" style="padding:8px 18px;font-size:0.85rem;">\u2714 Selesai</button>
+        <button class="btn btn-success" onclick="updateOrderStatus(${order.rowIdx}, 'Selesai')" style="padding:8px 18px;font-size:0.85rem;">✔ Selesai</button>
       </div>`;
       grid.appendChild(card);
     });
