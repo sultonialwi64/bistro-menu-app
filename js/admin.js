@@ -138,7 +138,7 @@ window.saveMenu = async function() {
     window.closeModal();
     window.fetchData();
   } catch (err) {
-    alert("Kesalahan jaringan: " + err.message);
+    showToast("Kesalahan jaringan: " + err.message);
   } finally {
     btnSave.innerText = "Simpan Menu";
     isSaving = false;
@@ -146,14 +146,30 @@ window.saveMenu = async function() {
 };
 
 window.deleteMenu = async function(id, name) {
-  if (!confirm(`Yakin ingin menghapus "${name}"?`)) return;
-  try {
-    await adminDeleteMenu(id, sessionPin);
-    showToast("\u2713 Menu dihapus!");
-    window.fetchData();
-  } catch (err) {
-    alert("Kesalahan jaringan: " + err.message);
-  }
+  const modal = document.getElementById("confirmModal");
+  document.getElementById("confirmTitle").innerText = "Hapus Menu?";
+  document.getElementById("confirmMessage").innerText = `Yakin ingin menghapus "${name}"?`;
+  
+  const btnOk = document.getElementById("btnConfirmOk");
+  btnOk.innerText = "Hapus";
+  btnOk.style.background = "var(--accent)";
+  
+  modal.style.display = "flex";
+  
+  document.getElementById("btnConfirmCancel").onclick = function() {
+    modal.style.display = "none";
+  };
+  
+  btnOk.onclick = async function() {
+    modal.style.display = "none";
+    try {
+      await adminDeleteMenu(id, sessionPin);
+      showToast("✔ Menu dihapus!");
+      window.fetchData();
+    } catch (err) {
+      showToast("Kesalahan jaringan: " + err.message);
+    }
+  };
 };
 
 window.switchTab = function(tab) {
@@ -323,14 +339,30 @@ function renderOrders(data) {
 }
 
 window.updateOrderStatus = async function(rowIdx, newStatus) {
-  if (!confirm(`Tandai pesanan ini sebagai ${newStatus}?`)) return;
-  try {
-    await adminUpdateOrderStatus(sessionPin, rowIdx, newStatus);
-    showToast("\u2713 Pesanan ditandai " + newStatus);
-    window.fetchOrders();
-  } catch (err) {
-    alert("Gagal update status");
-  }
+  const modal = document.getElementById("confirmModal");
+  document.getElementById("confirmTitle").innerText = "Tandai Selesai?";
+  document.getElementById("confirmMessage").innerText = `Tandai pesanan ini sebagai ${newStatus}?`;
+  
+  const btnOk = document.getElementById("btnConfirmOk");
+  btnOk.innerText = "Selesai";
+  btnOk.style.background = "var(--green)";
+  
+  modal.style.display = "flex";
+  
+  document.getElementById("btnConfirmCancel").onclick = function() {
+    modal.style.display = "none";
+  };
+  
+  btnOk.onclick = async function() {
+    modal.style.display = "none";
+    try {
+      await adminUpdateOrderStatus(sessionPin, rowIdx, newStatus);
+      showToast("✔ Pesanan ditandai " + newStatus);
+      window.fetchOrders();
+    } catch (err) {
+      showToast("Gagal update status");
+    }
+  };
 };
 
 // Listen to Pin Input Enter

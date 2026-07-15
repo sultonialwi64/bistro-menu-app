@@ -95,6 +95,17 @@
         </div>
       </div>
     </div>
+    <div class="modal-overlay" id="confirmModal" style="z-index: 100000; align-items: center; justify-content: center;">
+      <div class="modal-box" style="max-width: 320px; text-align: center; padding: 30px;">
+        <h3 id="confirmTitle" style="margin-bottom: 15px; font-family: 'Playfair Display', serif;">Konfirmasi</h3>
+        <p id="confirmMessage" style="color: var(--muted); margin-bottom: 25px; font-size: 0.9rem;">Apakah Anda yakin?</p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+          <button class="btn btn-secondary" id="btnConfirmCancel" style="flex: 1;">Batal</button>
+          <button class="btn" id="btnConfirmOk" style="flex: 1; background: var(--primary);">Ya</button>
+        </div>
+      </div>
+    </div>
+    
     <div class="modal-overlay" id="formModal">
       <div class="modal-box">
         <div class="modal-header"><h2 id="modalTitle">Tambah Menu Baru</h2><button class="btn-close" onclick="closeModal()">&times;</button></div>
@@ -121,6 +132,6 @@
     </div>
     <button class="btn-alarm-stop" id="stopAlarmBtn" onclick="stopAlarm()">&#x1F515; MATIKAN ALARM</button>
     <div id="toast">Data disimpan!</div>
-    <script type="module" src="./js/admin.js?v=2"></script>
+    <script type="module" src="./js/admin.js?v=3"></script>
   </body>
 </html>
