@@ -276,7 +276,7 @@ function renderOrders(data) {
   const grid = document.getElementById("ordersGrid");
   const badge = document.getElementById("orderBadge");
   
-  const activeOrders = data.filter((o) => o.status !== "Selesai" && o.status !== "Batal");
+  const activeOrders = data.filter((o) => o.status !== "Selesai" && o.status !== "Batal" && o.status !== "Menunggu Pembayaran");
   const doneOrders = data.filter((o) => o.status === "Selesai" || o.status === "Batal");
   
   document.getElementById("statActive").innerText = activeOrders.length;
