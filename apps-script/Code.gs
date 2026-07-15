@@ -7,10 +7,10 @@ const SHEET_TAB = "Menu"; // Ganti jika nama tab sheet berbeda
 const SHEET_ORDERS = "Pesanan"; // Tab untuk antrean pesanan
 const ADMIN_PIN = "123456"; // PIN rahasia kamu, aman di server Google, tidak bisa di-inspect browser!
 
-// Kredensial Midtrans Sandbox
-const MIDTRANS_SERVER_KEY = "MASUKKAN_SERVER_KEY_ANDA_DI_SINI";
-const MIDTRANS_CLIENT_KEY = "Mid-client-xPqUKBElwKUA7dwJ";
-const MIDTRANS_URL = "https://app.sandbox.midtrans.com/snap/v1/transactions";
+// Kredensial Midtrans PRODUCTION
+const MIDTRANS_SERVER_KEY = "MASUKKAN_SERVER_KEY_PRODUCTION_ANDA_DI_SINI";
+const MIDTRANS_CLIENT_KEY = "MASUKKAN_CLIENT_KEY_PRODUCTION_ANDA_DI_SINI";
+const MIDTRANS_URL = "https://app.midtrans.com/snap/v1/transactions";
 
 function pancingIzin() {
   UrlFetchApp.fetch("https://google.com");
@@ -173,7 +173,7 @@ function doPost(e) {
         
         let isPaid = false;
         try {
-          const res = UrlFetchApp.fetch("https://api.sandbox.midtrans.com/v2/" + orderId + "/status", options);
+          const res = UrlFetchApp.fetch("https://api.midtrans.com/v2/" + orderId + "/status", options);
           const midtransJson = JSON.parse(res.getContentText());
           
           if (midtransJson.transaction_status === "settlement" || midtransJson.transaction_status === "capture") {
