@@ -194,7 +194,7 @@ window.switchTab = function(tab) {
   if (tab === "orders" || tab === "history") {
     if (lastOrders.length > 0) renderOrders(lastOrders);
     window.fetchOrders();
-    if (!fetchInterval) fetchInterval = setInterval(window.fetchOrders, 10000);
+    if (!fetchInterval) fetchInterval = setInterval(window.fetchOrders, 3000);
   } else {
     if (fetchInterval) {
       clearInterval(fetchInterval);
