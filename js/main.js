@@ -845,7 +845,7 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
           if (json.status === "ok") {
             
             const handleSuccess = () => {
-              alert(`Pesanan berhasil terkirim! (ID: ${json.orderId})\nSilakan tunggu, pesanan Anda akan segera diproses.`);
+              showToast(`Pesanan berhasil terkirim! (ID: ${json.orderId})`);
               window.CART_DATA = [];
               localStorage.setItem("bistro_cart", JSON.stringify(window.CART_DATA));
               document.getElementById("custName").value = "";
@@ -858,32 +858,27 @@ import { parsePrice, formatRupiah, showToast } from './utils.js';
             if (json.token && window.snap) {
               window.snap.pay(json.token, {
                 onSuccess: async function(result){
-                  // Beritahu backend bahwa pembayaran lunas
+                  // Beritahu backend bahwa pembayaran lunas dan SIMPAN pesanan
                   try {
+                    // Masukkan orderId ke dalam data payload
+                    payload.data.orderId = json.orderId;
+                    
                     await fetch(APPS_SCRIPT_URL, {
                       method: "POST",
-                      body: JSON.stringify({ action: "confirm_payment", data: { orderId: json.orderId } })
+                      body: JSON.stringify({ action: "confirm_payment", data: payload.data })
                     });
                   } catch(e) { console.error("Gagal update status", e); }
                   handleSuccess();
                 },
                 onPending: function(result){
-                  alert("Menunggu pembayaran Anda!");
+                  showToast("Menunggu pembayaran Anda!");
                   handleSuccess();
                 },
                 onError: function(result){
-                  alert("Pembayaran gagal!");
+                  showToast("Pembayaran gagal!");
                 },
-                onClose: async function(){
-                  // Beritahu backend untuk membatalkan pesanan ini
-                  try {
-                    await fetch(APPS_SCRIPT_URL, {
-                      method: "POST",
-                      body: JSON.stringify({ action: "cancel_order", data: { orderId: json.orderId } })
-                    });
-                  } catch(e) { console.error("Gagal batal", e); }
-                  
-                  alert('Anda menutup popup tanpa menyelesaikan pembayaran. Pesanan dibatalkan.');
+                onClose: function(){
+                  showToast('Pesanan dibatalkan (Belum dibayar).');
                 }
               });
             } else {

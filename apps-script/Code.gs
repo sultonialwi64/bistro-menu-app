@@ -149,20 +149,21 @@ function doPost(e) {
           } catch(err) {
             return respond({ status: "error", message: "Fetch Error: " + err.toString() });
           }
+          
+          // JANGAN SIMPAN KE GOOGLE SHEET DULU JIKA PAKAI MIDTRANS!
+          // Biarkan pesanan menggantung di browser sampai dibayar.
+          return respond({ status: "ok", message: "Silakan bayar", orderId: orderId, token: snapToken, clientKey: MIDTRANS_CLIENT_KEY });
         }
         
-        const status = snapToken ? "Menunggu Pembayaran" : "Baru";
-        
-        orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, status]);
-        
-        return respond({ status: "ok", message: "Pesanan berhasil dikirim!", orderId: orderId, token: snapToken, clientKey: MIDTRANS_CLIENT_KEY });
+        // Jika bayar tunai (Rp 0), simpan langsung
+        orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, "Baru"]);
+        return respond({ status: "ok", message: "Pesanan berhasil dikirim!", orderId: orderId, token: null });
         
       } else if (action === "confirm_payment") {
         const orderId = data.orderId;
         if (!orderId) return respond({ status: "error", message: "Missing orderId" });
         
         // --- VERIFIKASI KEAMANAN (ANTI HACKER) ---
-        // Kita tanya langsung ke server Midtrans apakah order ini BENAR-BENAR sudah dibayar!
         const authHeader = "Basic " + Utilities.base64Encode(MIDTRANS_SERVER_KEY + ":");
         const options = {
           method: "get",
@@ -187,27 +188,16 @@ function doPost(e) {
         }
         // -----------------------------------------
         
-        const orders = orderSheet.getDataRange().getValues();
-        for (let i = 1; i < orders.length; i++) {
-          if (orders[i][0] == orderId) {
-            orderSheet.getRange(i + 1, 7).setValue("Lunas");
-            return respond({ status: "ok", message: "Pembayaran valid dan dikonfirmasi" });
-          }
-        }
-        return respond({ status: "error", message: "Order not found" });
+        // SIMPAN KE GOOGLE SHEET SEKARANG KARENA SUDAH LUNAS
+        const nama = data.nama || "Tanpa Nama";
+        const meja = data.meja || "-";
+        const totalStr = String(data.total || "0");
+        const detail = data.detail || "";
+        const waktu = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy, HH.mm.ss");
         
-      } else if (action === "cancel_order") {
-        const orderId = data.orderId;
-        if (!orderId) return respond({ status: "error", message: "Missing orderId" });
+        orderSheet.appendRow([orderId, waktu, nama, meja, totalStr, detail, "Lunas"]);
         
-        const orders = orderSheet.getDataRange().getValues();
-        for (let i = 1; i < orders.length; i++) {
-          if (orders[i][0] == orderId) {
-            orderSheet.getRange(i + 1, 7).setValue("Batal");
-            return respond({ status: "ok", message: "Pesanan dibatalkan" });
-          }
-        }
-        return respond({ status: "error", message: "Order not found" });
+        return respond({ status: "ok", message: "Pembayaran valid dan pesanan disimpan" });
       }
     }
 
